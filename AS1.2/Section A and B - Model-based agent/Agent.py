@@ -10,14 +10,22 @@ class Agent():
         self.current_state = None
         self.value_func = self.bellman
         self.maze = grid
+        #define empty sample, which contains all states visited by agent
+        self.sample = []
         #we immediately give the policy the maze size to prevent going out of bounds
         policy.set_size(grid.get_size())
     
     def set_current_state(self, position: tuple):
+        #set current state based on given position of initial state (maze.states are indexed based on position, so we can do an easy lookup)
         self.current_state = self.maze.get_states()[position[0]][position[1]]
+        #now add initial state to the agents sample
+        self.sample.append(self.current_state)
 
     def get_current_state(self):
         return self.current_state
+    
+    def get_sample(self):
+        return self.sample
     
     def bellman(x):
         return x**2
@@ -40,6 +48,12 @@ class Agent():
         if current_position[1]>=self.maze.size[1]-1:
             actionspace.remove((0,1))
         return actionspace
+    
+    def run_through_maze(self):
+        for i in range(100):
+            self.act()
+            if self.current_state.get_position() in self.maze.get_terminal_states():
+                break
 
     def act(self):
         #first define current position and current chosen action by the policy.
@@ -54,4 +68,7 @@ class Agent():
         action = self.policy.select_action(limited_actionspace) 
         
         #then calculate new position based on action
-        self.current_state = self.maze.step(current_position=position,action=action)        
+        self.current_state = self.maze.step(current_position=position,action=action)
+
+        #now add new visited state to the agents sample
+        self.sample.append(self.current_state)

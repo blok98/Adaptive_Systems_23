@@ -34,6 +34,12 @@ class Maze():
     def get_actionspace(self):
         return self.action_space
 
+    def get_terminal_states(self):
+        '''
+        returns terminal state positions, required for Agent to know when to stop
+        '''
+        return self.final_state
+
     def set_env(self,size: int):
         "set up a grid with size = x*x, given parameter size=(x,x)"
         self.grid=[[-1]*size[0]]*size[1]

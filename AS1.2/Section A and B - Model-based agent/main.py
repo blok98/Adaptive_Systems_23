@@ -17,10 +17,10 @@ if __name__=="__main__":
     p1 = Policy()
     a1 = Agent(m1,p1)
     a1.set_current_state(starting_position)
-    pos = a1.get_current_state().get_position()
 
-    for i in range(100):
-        a1.act()
-        if a1.get_current_state().get_position() in final_states:
-            break
+    a1.run_through_maze()
+    sample = a1.get_sample()
+    print("sample: ", [state.get_position() for state in sample])
+
+
     
