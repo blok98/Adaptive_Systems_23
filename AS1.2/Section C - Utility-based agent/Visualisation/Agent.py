@@ -106,6 +106,7 @@ class Agent():
                 #reset state and position
                 self.current_state=self.maze.get_states()[self.start_position[0]][self.start_position[1]]
                 break
+    
 
     def act(self):
         #first define current position and current chosen action by the policy.
