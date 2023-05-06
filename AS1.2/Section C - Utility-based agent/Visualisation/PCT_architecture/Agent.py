@@ -47,7 +47,7 @@ class Policy():
             # then we retrieve the value of the next state ( v(s') )
             nextstate_value = next_state_info[i][1]
             # at last we update current state value with the bellman expectation equation
-            currentstate_value = value_function(nextstate_reward, nextstate_value, 0.01)
+            currentstate_value = value_function(nextstate_reward, nextstate_value, 1)
             if currentstate_value>=max_value: 
                 max_value=currentstate_value
                 best_action=action_space[i]
