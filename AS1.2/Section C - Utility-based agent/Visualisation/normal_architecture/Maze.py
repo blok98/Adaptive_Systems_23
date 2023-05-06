@@ -63,7 +63,13 @@ class Maze():
     
     def update_value_matrix(self, value: float, position: tuple) -> None:
         "update value on current state position after policy has calculated new action"
-        self.value_matrix[position[0]][position[1]] = value
+        print(f"      update function of maze has started..")
+        print(f"      the max utility {value} is updated on position {position}.")
+        print(f"      old value matrix: {self.value_matrix}")
+        #we need to update de value matrix based on a position (x,y). However, updating the matrix[x][y] gives the position (y,x) because first element shows rows(y), second shows columns(x)
+        #therefore we update the value matrix[y][x]
+        self.value_matrix[position[1]][position[0]] = value
+        print(f"      new value matrix: {self.value_matrix}")
     
     def step(self,current_position: tuple, action: tuple) -> tuple:
         #makes the agent take an action - moving to another cell
