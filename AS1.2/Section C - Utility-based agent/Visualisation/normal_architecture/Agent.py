@@ -21,6 +21,7 @@ class Policy():
         best_action = (0,0)
         for action in action_space:
             #calculate position of possible next state by adding the action (0,1) to the current state (2,3)
+            #note that current_position is (y,x) so nextstate = (y+action_y,x+action_x)
             nextstate_position = (current_position[0]+action[0],current_position[1]+action[1])
             #define indexes as i,j for shorter code
             i,j = nextstate_position
@@ -73,16 +74,16 @@ class Agent():
         removes all unavailable actions from the actionspace.
         (position (3,0) has no business moving right in a 4x4 environment..)
         '''
-        #if current position is on the left edge, remove left move
+        #if current position is on the upper edge, remove upper move
         if current_position[0]<=0:
             actionspace.remove((-1,0))
-        #if current position is on the right edge, remove right move
+        #if current position is on the lower edge, remove upper move
         if current_position[0]>=self.maze.size[0]-1:
             actionspace.remove((1,0))
-        #if current position is on the upper edge, remove up move
+        #if current position is on the left edge, remove left move
         if current_position[1]<=0:
             actionspace.remove((0,-1))
-        #if current position is on the down edge, remove down move
+        #if current position is on the right edge, remove right move
         if current_position[1]>=self.maze.size[1]-1:
             actionspace.remove((0,1))
         return actionspace
@@ -111,12 +112,12 @@ class Agent():
         note this function assumes agent starts at position 0,0 and loops from left to right, from up to down
         '''
         state_position = state.get_position()
-        if (1,0) in limited_actionspace:
+        if (0,1) in limited_actionspace:
             #if right move is in actionspace, go right
-            new_state_position=(state_position[0]+1,state_position[1])
-        elif (0,1) in limited_actionspace:
+            new_state_position=(state_position[0],state_position[1]+1)
+        elif (1,0) in limited_actionspace:
             #if agent is on right edge, but can still go down, go to the left edge and one cell down
-            new_state_position=(0,state_position[1]+1)        
+            new_state_position=(state_position[0]+1,0)        
         else:
             #if agent cant go right nor down, terminate (or go to first state again)
             new_state_position=(0,0)

@@ -20,7 +20,7 @@ class Maze():
             row=[]
             for j in range(self.size[1]):
                 "we retrieve reward from reward matrix, on same position as the indexes"
-                reward = self.reward_matrix[j][i]
+                reward = self.reward_matrix[i][j]
                 "we retrieve boolean terminal var, only if position is present in the given positions of the terminal states"
                 terminal = (i,j) in self.final_state
                 s = State((i,j),reward,terminal)
@@ -66,9 +66,8 @@ class Maze():
         print(f"      update function of maze has started..")
         print(f"      the max utility {value} is updated on position {position}.")
         print(f"      old value matrix: {self.value_matrix}")
-        #we need to update de value matrix based on a position (x,y). However, updating the matrix[x][y] gives the position (y,x) because first element shows rows(y), second shows columns(x)
-        #therefore we update the value matrix[y][x]
-        self.value_matrix[position[1]][position[0]] = value
+        #we need to update de value matrix based on a position (x,y). 
+        self.value_matrix[position[0]][position[1]] = value
         print(f"      new value matrix: {self.value_matrix}")
     
     def step(self,current_position: tuple, action: tuple) -> tuple:
