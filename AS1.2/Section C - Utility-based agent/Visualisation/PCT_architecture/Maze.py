@@ -20,7 +20,7 @@ class Maze():
             row=[]
             for j in range(self.size[1]):
                 "we retrieve reward from reward matrix, on same position as the indexes"
-                reward = self.reward_matrix[i][j]
+                reward = self.reward_matrix[j][i]
                 "we retrieve boolean terminal var, only if position is present in the given positions of the terminal states"
                 terminal = (i,j) in self.final_state
                 s = State((i,j),reward,terminal)
@@ -41,6 +41,9 @@ class Maze():
         return self.states
     
     def get_values(self) -> None:
+        '''
+         Agent has no acces to this, because the agent only looks one step forward.
+         '''
         return self.value_matrix
 
     def get_size(self) -> tuple:
@@ -57,18 +60,20 @@ class Maze():
     
     def get_reward_matrix(self):
         '''
-        Only used to visualise the direct rewards in the pygame window
+        Only used to visualise the direct rewards in the pygame window. 
+        Agent has no acces to this, because the agent only looks one step forward.
         '''
         return self.reward_matrix
     
+    def get_state_info(self,position: tuple) -> tuple:
+        '''
+        returns reward and utility of state (a,b)
+        '''
+        return self.reward_matrix[position[0]][position[1]], self.value_matrix[position[0]][position[1]]
+    
     def update_value_matrix(self, value: float, position: tuple) -> None:
         "update value on current state position after policy has calculated new action"
-        print(f"      update function of maze has started..")
-        print(f"      the max utility {value} is updated on position {position}.")
-        print(f"      old value matrix: {self.value_matrix}")
-        #we need to update de value matrix based on a position (x,y). 
         self.value_matrix[position[0]][position[1]] = value
-        print(f"      new value matrix: {self.value_matrix}")
     
     def step(self,current_position: tuple, action: tuple) -> tuple:
         #makes the agent take an action - moving to another cell

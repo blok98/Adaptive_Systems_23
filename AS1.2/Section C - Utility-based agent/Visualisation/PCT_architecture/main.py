@@ -3,7 +3,7 @@ from Agent import Agent,Policy
 from State import State
 import pygame
 from time import sleep
-#its defined as (n_row,n_column). so (2,3) is 3 under and 4 right"
+#its defined as (n_column,n_row). so (2,3) is 3 right and 4 under"
 
 if __name__=="__main__":
     reward_matrix = [[-1,-1,-1,40],
@@ -12,8 +12,7 @@ if __name__=="__main__":
                      [10,-2,-1,-1]]
     #final states (finish) are located in the upper right and lower left corners
     final_states = [(3,0),(0,3)]
-    #we chose starting point (0,0) because we want to explore the env and loop through all states
-    starting_position = (0,0)
+    starting_position = (2,3)
     m1 = Maze(reward_matrix, final_states)
     p1 = Policy()
     a1 = Agent(m1,p1)
@@ -40,6 +39,8 @@ if __name__=="__main__":
     #use scale to multiply the maze size
     WINDOW_SIZE = (shape[0]*scale,shape[1]*scale)
     screen = pygame.display.set_mode(WINDOW_SIZE)
+
+
 
     #define the grid based on the predefined shape and scale
     GRID_WIDTH = shape[0]
@@ -85,9 +86,7 @@ if __name__=="__main__":
 
         screen.fill(WHITE)
 
-        #draw the grid. 
-        #We switch row and column for drawing the states, because we define coordinates as (x,y).
-        #So a write for x=2, y=3 is done by writing to grid[2][3] or grid[column][row]
+        #draw the grid
         for row in range(GRID_HEIGHT):
             for column in range(GRID_WIDTH):
                 x = column * CELL_SIZE
@@ -97,15 +96,14 @@ if __name__=="__main__":
 
                 if grid[row][column] > 1:
                     color = GREEN
-                elif grid[row][column]  >= 0:
+                elif grid[row][column] >= 0:
                     color = YELLOW
-                elif grid[row][column]  >= -1:
+                elif grid[row][column] >= -1:
                     color = ORANGE
                 else:
                     color = RED
 
                 #now we recolor the cell the agent is currently in
-                #we make sure to flip the coordinates (column,row) because we maintained (x,y) coordinates (probably stupid)
                 if (row,column) == current_position:
                     color = BLUE
                 #now recolor start position
@@ -126,8 +124,6 @@ if __name__=="__main__":
                 button_text=f"{button_text} {current_visualisation}"
                 button_text = font.render(f'press: {current_visualisation}', True, pygame.Color('black'))
                 screen.blit(button_text,(110,0))
-        
-
 
         #update the display
         pygame.display.update()
@@ -136,7 +132,7 @@ if __name__=="__main__":
         a1.run_through_maze(limited_steps=1)
 
         #set timer for better visualisation
-        sleep(2)
+        sleep(0.5)
 
     #quit pygame
     pygame.quit()
