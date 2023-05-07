@@ -4,9 +4,9 @@ In deze repo staat de code en de documentatie van opdracht 1.2 van Adaptive Syst
 
 Branch:
 - <b>Model-based-agent:</b> section A&B
-Utility-based-agent: section C
-Stochasticische-omgeving: extra
-Perceptual-Control-Theory: reconstructie code op basis van PCT structuur
+- <b>Utility-based-agent:</b> section C
+- <b>Stochasticische-omgeving:</b> extra
+- <b>Perceptual-Control-Theory:</b> reconstructie code op basis van PCT structuur
 
 Elke functie is voorzien van docstrings waarin wordt beschreven wat de functie en argumenten doen.
 
