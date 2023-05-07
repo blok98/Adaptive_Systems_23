@@ -4,10 +4,20 @@ class State():
         self.reward = reward
         self.terminal = terminal
     
-    def get_position(self):
+    def get_position(self) -> tuple:
+        """returns position of the state, needed for agent to get information and to calculate new position
+
+        Returns:
+            tuple: tuple of the coordinates of the state
+        """
         return self.position
     
-    def get_reward(self):
+    def get_reward(self) -> int:
+        """returns reward of the state
+
+        Returns:
+            int: reward of the state
+        """
         return self.reward
     
     def __str__(self):

@@ -6,11 +6,27 @@ class Policy():
     def __init__(self) -> None:
         self.size=(0,0)
     
-    def set_size(self,size: tuple):
-        #set size to prevent going out of bounds
+    def set_size(self,size: tuple) -> None:
+        """set size to prevent going out of bounds
+
+        Args:
+            size (tuple): the shape of the grid, used for taking action
+        """
         self.size=size
 
-    def select_action(self,action_space: list, current_state: State, state_env: list, value_matrix: list, value_function):
+    def select_action(self,action_space: list, current_state: State, state_env: list, value_matrix: list, value_function) -> tuple:
+        """determine best utility and best action by applying bellman expectation equation
+
+        Args:
+            action_space (list): list of all possible actions, limited by position
+            current_state (State): current state of the Agent
+            state_env (list): 2D list of all states in the environment
+            value_matrix (list): 2D list of all utilities
+            value_function (_type_): Bellman expectation equation defined in Agent
+
+        Returns:
+            tuple: tuple of the best action and the maximum achievable utility
+        """
         #for now chose a random action
         #but make sure to not go out of bounds
         #its defined as (n_column,n_row). so (2,3) is 3 right and 4 under
@@ -53,27 +69,59 @@ class Agent():
         #we immediately give the policy the maze size to prevent going out of bounds
         policy.set_size(grid.get_size())
     
-    def set_current_state(self, position: tuple):
-        #set current state based on given position of initial state (maze.states are indexed based on position, so we can do an easy lookup)
+    def set_current_state(self, position: tuple) -> None:
+        """set current state based on given position of initial state (maze.states are indexed based on position, so we can do an easy lookup),
+        and add initial state to the agents sample
+
+        Args:
+            position (tuple): coordinates of the new state
+        """
         self.current_state = self.maze.get_states()[position[0]][position[1]]
         self.start_position = position
         #now add initial state to the agents sample
         self.sample.append(self.current_state)
 
-    def get_current_state(self):
+    def get_current_state(self) -> State:
+        """returns current state
+
+        Returns:
+            State: State object of current state
+        """
         return self.current_state
     
-    def get_sample(self):
+    def get_sample(self) -> list:
+        """Returns the sample of the visited states, usefull for backtracing agents behaviour
+
+        Returns:
+            list: list of all visited states as stateobjects
+        """
         return self.sample
     
-    def bellman(self, reward_sprime: int, utility_sprime: float, learning_rate: float, delta=0.01):
-        return reward_sprime + learning_rate*utility_sprime
+    def bellman(self, reward_sprime: int, utility_sprime: float, discount_factor: float, delta=0.01) -> float:
+        """calculates bellman equation in deterministic world
 
-    def limit_actionspace_by_bounderies(self, actionspace: list, current_position: tuple):
-        '''
-        removes all unavailable actions from the actionspace.
+        Args:
+            reward_sprime (int): reward of the next state
+            utility_sprime (float): utility of the next state
+            learning_rate (float): discount factor that determines relevance of future utilities
+            delta (float, optional): _description_. Defaults to 0.01.
+
+        Returns:
+            float: _description_
+        """
+        return reward_sprime + discount_factor*utility_sprime
+
+    def limit_actionspace_by_bounderies(self, actionspace: list, current_position: tuple) -> list:
+        """        removes all unavailable actions from the actionspace.
         (position (3,0) has no business moving right in a 4x4 environment..)
-        '''
+
+        Args:
+            actionspace (list): list of all possible actions the agent is capable of making
+            current_position (tuple): current position of the agents state
+
+        Returns:
+            _type_: list of all possible actions the agent can make based on its position (without actions that lead to 'out of scene')
+        """
         #if current position is on the upper edge, remove upper move
         if current_position[0]<=0:
             actionspace.remove((-1,0))
@@ -88,7 +136,9 @@ class Agent():
             actionspace.remove((0,1))
         return actionspace
     
-    def iterate(self,exploration_rate,terminate_on_finalstate = False, limited_steps=1000):
+    def iterate(self,exploration_rate,terminate_on_finalstate = False, limited_steps=1000) -> None:
+        """iterates agents act function to simulate the mazes tables
+        """
         for i in range(limited_steps):
             self.act(exploration_rate)
             if self.current_state.get_position() in self.maze.get_terminal_states() and terminate_on_finalstate:
@@ -97,7 +147,17 @@ class Agent():
                 self.current_state=self.maze.get_states()[self.start_position[0]][self.start_position[1]]
                 break
     
-    def exploit(self, current_position: tuple, action: tuple, states) -> tuple:
+    def exploit(self, current_position: tuple, action: tuple, states: list) -> State:
+        """step event: calculating new position in simulation when exploiting the policy. So it will always take the best action
+
+        Args:
+            current_position (tuple): current states position
+            action (tuple): best action chosen by policy (for example one to the right (0,1))
+            states (list): 2D list of all states
+
+        Returns:
+            State: new state based on taken action
+        """
         #makes the agent take an action - moving to another cell
         new_position = (current_position[0]+action[0],current_position[1]+action[1])
         print(f"old position: {current_position}, action: {action}, new position: {new_position}, ",end="")
@@ -106,11 +166,18 @@ class Agent():
         #we only return the new state, all values (pos,reward) are just attribute to that state
         return new_state
     
-    def explore(self,state,limited_actionspace,state_matrix):
-        '''
-        go to the next in line state in order to loop through update the utility of all states 
+    def explore(self,state: State,limited_actionspace: list,state_matrix: list) -> State:
+        """ go to the next in line state in order to loop through update the utility of all states 
         note this function assumes agent starts at position 0,0 and loops from left to right, from up to down
-        '''
+
+        Args:
+            state (State): current state
+            limited_actionspace (list): all possible actions based on current position
+            state_matrix (list): 2D list of all states
+
+        Returns:
+            State: new state based on taken action
+        """
         state_position = state.get_position()
         if (0,1) in limited_actionspace:
             #if right move is in actionspace, go right
@@ -130,7 +197,12 @@ class Agent():
 
 
 
-    def act(self, exploration_rate: float = 1.0):
+    def act(self, exploration_rate: float = 1.0) -> None:
+        """Filter actions, apply policy and update values and new state. Also maze.step is called to move the agent.
+
+        Args:
+            exploration_rate (float, optional): Chance of exploring instead of exploiting. Defaults to 1.0.
+        """
         print("\n")
         print(f"Start Agents act() function..")
         #first define current position and current chosen action by the policy.
