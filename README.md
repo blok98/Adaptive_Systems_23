@@ -16,6 +16,8 @@ Ook kan de exploration rate aangepast worden in de iterate functie die ook aan h
 
 Het verslag van AS1.2 geeft verder toelichting over de theorie, structuur van de code en de resultaten.
 
+### visualisatie
+Lichtblauw is de begin state, dat nu op (0,0) staat aangezien we alle states afgaan, donkerblauw is de huidige positie van de agent en de kleuren van rood naar groen laten zien hoe hoog de utility en de reward is. De reward wordt getoond wanneer de witte button wordt aangeklikt. De snelheid van de agent wordt bepaald door de sleep functie aan het einde van de while loop.
 
 <i> Dependencies:
   - pygame</i>
