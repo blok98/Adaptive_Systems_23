@@ -13,3 +13,5 @@ Elke functie is voorzien van docstrings waarin wordt beschreven wat de functie e
 Bij elke sectie, behalve bij A & B, wordt een visualisatie gemaakt met pygame waarin het gedrag van de agent live gevolgd kan worden.
 In main.py kan aan het einde van de while loop de timer worden aangepast om de pauzes te verlagen en het model sneller te laten runnen.
 Ook kan de exploration rate aangepast worden in de iterate functie die ook aan het einde van de while loop staat.
+
+Het verslag van AS1.2 geeft verder toelichting over de theorie, structuur van de code en de resultaten.
