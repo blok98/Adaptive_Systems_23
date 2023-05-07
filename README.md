@@ -15,3 +15,7 @@ In main.py kan aan het einde van de while loop de timer worden aangepast om de p
 Ook kan de exploration rate aangepast worden in de iterate functie die ook aan het einde van de while loop staat.
 
 Het verslag van AS1.2 geeft verder toelichting over de theorie, structuur van de code en de resultaten.
+
+
+<i> Dependencies:
+  - pygame</i>
