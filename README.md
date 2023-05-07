@@ -8,7 +8,7 @@ Branch:
 - <b>Stochasticische-omgeving:</b> extra
 - <b>Perceptual-Control-Theory:</b> reconstructie code op basis van PCT structuur
 
-Elke functie is voorzien van docstrings waarin wordt beschreven wat de functie en argumenten doen.
+Elke functie is voorzien van docstrings waarin wordt beschreven wat de functies en argumenten doen.
 
 Bij elke sectie, behalve bij A & B, wordt een visualisatie gemaakt met pygame waarin het gedrag van de agent live gevolgd kan worden.
 In main.py kan aan het einde van de while loop de timer worden aangepast om de pauzes te verlagen en het model sneller te laten runnen.
