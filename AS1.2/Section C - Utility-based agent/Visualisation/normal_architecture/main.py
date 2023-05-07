@@ -3,6 +3,7 @@ from Agent import Agent,Policy
 from State import State
 import pygame
 from time import sleep
+import random
 #its defined as (n_row,n_column). so (2,3) is 3 under and 4 right"
 
 if __name__=="__main__":
@@ -10,11 +11,29 @@ if __name__=="__main__":
                      [-1,-1,-10,-10],
                      [-1,-1,-1,-1],
                      [10,-2,-1,-1]]
+    
+    probability_matrix = [[0]*16]*16
+
+
+    #we make sure random chosen probabilities differ in values by removing chosen value
+    #we make sure random chosen probabilities going from state x sum up to 1, by only chosing from probabilities that also sum up to 1   sum( [round(i/50,3) for i in range(10)]+[round(i/150,3) for i in range(6)] ) = 1
+
+    for i in range(4*4):
+        possible_probabilities = [round(i/50,3) for i in range(10)]+[round(i/150,3) for i in range(6)]
+        transition_probabilities = []
+        for j in range(4*4):
+            random_prob = random.choice(possible_probabilities)
+            possible_probabilities.remove(random_prob)
+            transition_probabilities.append(random_prob)
+        probability_matrix[i]=transition_probabilities
+
+    print(f"probability matrix:  {probability_matrix}")
+    
     #final states (finish) are located in the upper right and lower left corners
     final_states = [(3,0),(0,3)]
     #we chose starting point (0,0) because we want to explore the env and loop through all states
     starting_position = (0,0)
-    m1 = Maze(reward_matrix, final_states)
+    m1 = Maze(reward_matrix, final_states, probability_matrix)
     p1 = Policy()
     a1 = Agent(m1,p1)
     a1.set_current_state(starting_position)
@@ -136,7 +155,7 @@ if __name__=="__main__":
         a1.iterate(exploration_rate=1,limited_steps=1)
 
         #set timer for better visualisation
-        sleep(2)
+        sleep(0.1)
 
     #quit pygame
     pygame.quit()

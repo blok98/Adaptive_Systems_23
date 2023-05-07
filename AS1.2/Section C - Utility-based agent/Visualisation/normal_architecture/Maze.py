@@ -1,13 +1,14 @@
 from State import State
 
 class Maze():
-    def __init__(self,reward_matrix: list,final_state: list) -> None:
+    def __init__(self,reward_matrix: list,final_state: list, probabilities: list) -> None:
         self.grid = [[]]
         self.states = []
         self.final_state = final_state
         self.size= (len(reward_matrix[0]),len(reward_matrix))
         self.reward_matrix = reward_matrix
         self.value_matrix = [[]]
+        self.probability_matrix = probabilities
         self.action_space = [(1,0),(-1,0),(0,1),(0,-1)]
         #immediately set the initial states
         self.set_initial_states()
@@ -60,6 +61,9 @@ class Maze():
         Only used to visualise the direct rewards in the pygame window
         '''
         return self.reward_matrix
+    
+    def get_probability_matrix(self):
+        return self.probability_matrix
     
     def update_value_matrix(self, value: float, position: tuple) -> None:
         "update value on current state position after policy has calculated new action"

@@ -9,8 +9,14 @@ class Policy():
     def set_size(self,size: tuple):
         #set size to prevent going out of bounds
         self.size=size
+    
+    def get_transition_probability(self, probability_matrix, old_position, new_position):
+        #the transition prob is located on x=current state (listed from left to right, up to down) and y=next state (listed equally)
+        #note that it doesnt matter what probability we chose in the matrix, given the lookup is consistently, because we use arbitrary values
+        #index = x-coord * 4 + y-coordinate. So (1,3) becomes index 7. Meaning the row index counts for 4 and column index counts for 1.
+        return probability_matrix[old_position[0]*4+old_position[1]][new_position[0]*4+new_position[1]]
 
-    def select_action(self,action_space: list, current_state: State, state_env: list, value_matrix: list, value_function):
+    def select_action(self,action_space: list, current_state: State, state_env: list, value_matrix: list, probability_matrix: list, value_function):
         #for now chose a random action
         #but make sure to not go out of bounds
         #its defined as (n_column,n_row). so (2,3) is 3 right and 4 under
@@ -30,8 +36,11 @@ class Policy():
             # then we retrieve the value of the next state ( v(s') )
             nextstate_value = value_matrix[i][j]
             print(f"   check action {action}.. nexstatereward = {nextstate_reward}, nextstatevalue = {nextstate_value}, both on position {i,j}.")
+            #before updating value we have to determine probability to go to state with current action
+
+            transition_probability = self.get_transition_probability(probability_matrix,current_position,nextstate_position)
             # at last we update current state value with the bellman expectation equation
-            currentstate_value = value_function(nextstate_reward, nextstate_value, 1)
+            currentstate_value = round(value_function(nextstate_reward, nextstate_value, 1, transition_probability),7)
             if currentstate_value>=max_value: 
                 max_value=currentstate_value
                 best_action=action
@@ -66,8 +75,8 @@ class Agent():
     def get_sample(self):
         return self.sample
     
-    def bellman(self, reward_sprime: int, utility_sprime: float, learning_rate: float, delta=0.01):
-        return reward_sprime + learning_rate*utility_sprime
+    def bellman(self, reward_sprime: int, utility_sprime: float, learning_rate: float, probability: float, delta=0.01):
+        return probability * (reward_sprime + learning_rate*utility_sprime)
 
     def limit_actionspace_by_bounderies(self, actionspace: list, current_position: tuple):
         '''
@@ -143,7 +152,7 @@ class Agent():
         limited_actionspace = self.limit_actionspace_by_bounderies(total_actionspace, position_current_state)
         print(f"limited actionspace: ",limited_actionspace)
 
-        action, max_value = self.policy.select_action(limited_actionspace, self.current_state, self.maze.get_states(), self.maze.get_values(), self.bellman) 
+        action, max_value = self.policy.select_action(limited_actionspace, self.current_state, self.maze.get_states(), self.maze.get_values(), self.maze.get_probability_matrix(), self.bellman) 
 
         #before we update value_matrix we update utility to 0 when calculating utility for terminal state
         if self.current_state.get_position() in self.maze.get_terminal_states():
