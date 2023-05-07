@@ -3,7 +3,7 @@
 In deze repo staat de code en de documentatie van opdracht 1.2 van Adaptive Systems 22-23. Voor elke section is een eigen branch aangemaakt.
 
 Branch:
-- Model-based-agent: section A&B
+- ###Model-based-agent: section A&B
 Utility-based-agent: section C
 Stochasticische-omgeving: extra
 Perceptual-Control-Theory: reconstructie code op basis van PCT structuur
