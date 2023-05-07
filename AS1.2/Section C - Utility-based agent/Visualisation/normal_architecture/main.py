@@ -3,7 +3,7 @@ from Agent import Agent,Policy
 from State import State
 import pygame
 from time import sleep
-#its defined as (n_column,n_row). so (2,3) is 3 right and 4 under"
+#its defined as (n_row,n_column). so (2,3) is 3 under and 4 right"
 
 if __name__=="__main__":
     reward_matrix = [[-1,-1,-1,40],
@@ -106,10 +106,10 @@ if __name__=="__main__":
 
                 #now we recolor the cell the agent is currently in
                 #we make sure to flip the coordinates (column,row) because we maintained (x,y) coordinates (probably stupid)
-                if (column,row) == current_position:
+                if (row,column) == current_position:
                     color = BLUE
                 #now recolor start position
-                if (column,row) == starting_position:
+                if (row,column) == starting_position:
                     color = LIGHTBLUE
 
                 #draw the cell in the window with corresponding cell, and color info
