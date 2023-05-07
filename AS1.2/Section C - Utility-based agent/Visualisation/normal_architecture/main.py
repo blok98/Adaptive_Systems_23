@@ -133,7 +133,7 @@ if __name__=="__main__":
         pygame.display.update()
         
         #move one step with agent
-        a1.run_through_maze(limited_steps=1)
+        a1.iterate(exploration_rate=1,limited_steps=1)
 
         #set timer for better visualisation
         sleep(2)

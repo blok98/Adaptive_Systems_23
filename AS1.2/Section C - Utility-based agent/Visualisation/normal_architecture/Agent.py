@@ -88,20 +88,20 @@ class Agent():
             actionspace.remove((0,1))
         return actionspace
     
-    def run_through_maze(self,terminate_on_finalstate = False, limited_steps=1000):
+    def iterate(self,exploration_rate,terminate_on_finalstate = False, limited_steps=1000):
         for i in range(limited_steps):
-            self.act()
+            self.act(exploration_rate)
             if self.current_state.get_position() in self.maze.get_terminal_states() and terminate_on_finalstate:
                 print("Agent has reached terminal state, Agent is now being reset")
                 #reset state and position
                 self.current_state=self.maze.get_states()[self.start_position[0]][self.start_position[1]]
                 break
     
-    def exploit(self,current_position: tuple, action: tuple) -> tuple:
+    def exploit(self, current_position: tuple, action: tuple, states) -> tuple:
         #makes the agent take an action - moving to another cell
         new_position = (current_position[0]+action[0],current_position[1]+action[1])
         print(f"old position: {current_position}, action: {action}, new position: {new_position}, ",end="")
-        new_state = self.states[new_position[0]][new_position[1]]
+        new_state = states[new_position[0]][new_position[1]]
         print(f"new state: {new_state}")
         #we only return the new state, all values (pos,reward) are just attribute to that state
         return new_state
@@ -130,7 +130,7 @@ class Agent():
 
 
 
-    def act(self):
+    def act(self, exploration_rate: float = 1.0):
         print("\n")
         print(f"Start Agents act() function..")
         #first define current position and current chosen action by the policy.
@@ -144,16 +144,19 @@ class Agent():
         print(f"limited actionspace: ",limited_actionspace)
 
         action, max_value = self.policy.select_action(limited_actionspace, self.current_state, self.maze.get_states(), self.maze.get_values(), self.bellman) 
-        
+
         #before we update value_matrix we update utility to 0 when calculating utility for terminal state
         if self.current_state.get_position() in self.maze.get_terminal_states():
             max_value=0
-
-        # #determine next state based on the best action
-        # self.current_state = self.exploit(current_position=position_current_state,action=action)
-
-        #determine next in line state in order to explore and update utilities of all states
-        self.current_state = self.explore(self.current_state, limited_actionspace, self.maze.get_states())
+        
+        #checks wether to exploit or explore
+        exploit_status = random.random()>exploration_rate
+        if exploit_status:
+            # #determine next state based on the best action
+            self.current_state = self.exploit(position_current_state,action, self.maze.get_states())
+        else:
+            #determine next in line state in order to explore and update utilities of all states
+            self.current_state = self.explore(self.current_state, limited_actionspace, self.maze.get_states())
 
         #update utility matrix based on the calculated value of the old state (so update state 0 with utility of the best next state)
         self.maze.update_value_matrix(max_value,position_current_state)
