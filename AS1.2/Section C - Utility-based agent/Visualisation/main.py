@@ -136,7 +136,7 @@ if __name__=="__main__":
         a1.iterate(exploration_rate=1,limited_steps=1)
 
         #set timer for better visualisation
-        sleep(0.7)
+        sleep(0.2)
 
     #quit pygame
     pygame.quit()
