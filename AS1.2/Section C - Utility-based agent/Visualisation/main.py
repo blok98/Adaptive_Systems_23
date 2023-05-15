@@ -62,13 +62,23 @@ if __name__=="__main__":
     #set the utility values of the maze as the main values for the cells. 
     status_visualisation = 0
     grid = m1.get_values()
+    policy_space = a1.policy.get_policyspace()
 
+    #here we define the settings and condition for stopping when model is converged
+    utility_imporv_list = []
+    delta = 0.01
 
     #first we make a game loop in which we update the visualisation based on the agents actions
     running = True
+    status = "Not converged"
     while running:
+
         #define current position
         current_position=a1.get_current_state().get_position()
+        #make sure that when model is converged agent stays at position 3,3 so the model stops running (it doenst but i wont explore the world anymore)
+        if status == "Converged":
+            current_position=(3,3)
+            
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -120,6 +130,13 @@ if __name__=="__main__":
                 text_rect = text.get_rect(center=(x + CELL_SIZE / 2, y + CELL_SIZE / 2))
                 screen.blit(text, text_rect)
 
+                #draw the action in tuples in the cell
+                #first draw small font size
+                small_font = pygame.font.Font(None, 12)
+                text = small_font.render(str(policy_space[row][column]), True, (0, 0, 0))
+                text_rect = text.get_rect(center=(x + CELL_SIZE / 2, y + CELL_SIZE / 1.5))
+                screen.blit(text, text_rect)
+
                 
                 pygame.draw.rect(screen, button_color, button_rect)
                 current_visualisation=["utility","reward"][status_visualisation]   
@@ -133,7 +150,17 @@ if __name__=="__main__":
         pygame.display.update()
         
         #move one step with agent
-        a1.iterate(exploration_rate=1,limited_steps=1)
+        old_v, new_v = a1.act(exploration_rate=1)
+        utility_imporv_list.append(new_v-old_v)
+        
+        #check for convergion to terminate or not
+        if current_position == (3,3):
+            if max(utility_imporv_list)<delta:
+                status = "Converged"
+            else:
+                status =  "Not Converged"
+
+            utility_imporv_list=[]
 
         #set timer for better visualisation
         sleep(0.2)
@@ -144,4 +171,6 @@ if __name__=="__main__":
     sample = a1.get_sample()
 
     # print("sample: ", [state.get_position() for state in sample])
+    print("\n\nModel has converged..")
     print("value matrix: ", m1.value_matrix)
+    print("policy: ",a1.get_policy())

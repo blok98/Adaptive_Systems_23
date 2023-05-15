@@ -1,10 +1,12 @@
 from Maze import Maze
 from State import State
 import random
+from time import sleep
 
 class Policy():
     def __init__(self) -> None:
         self.size=(0,0)
+        self.policy_space = [[(0, 0)] * 4 for i in range(4)]
     
     def set_size(self,size: tuple) -> None:
         """set size to prevent going out of bounds
@@ -13,6 +15,24 @@ class Policy():
             size (tuple): the shape of the grid, used for taking action
         """
         self.size=size
+    
+    def update_policyspace(self,chosen_action: tuple,position: tuple) -> None:
+        """updates policy space of the Policy (and Agent) by replacing current action (tuple) by chosen action on old position
+
+        Args:
+            chosen_action (tuple): chosen action by the agent, and the select_action function from Policy
+            position (tuple): current position of the agent
+        """
+        self.policy_space[position[0]][position[1]]=chosen_action
+        print(f"new_policyspace: {self.policy_space}")
+        
+    def get_policyspace(self):
+        """returns 2D list of all actions chosen by the policy
+
+        Returns:
+            list: 2D list of all actions
+        """
+        return self.policy_space
 
     def select_action(self,action_space: list, current_state: State, state_env: list, value_matrix: list, value_function) -> tuple:
         """determine best utility and best action by applying bellman expectation equation
@@ -25,7 +45,7 @@ class Policy():
             value_function (_type_): Bellman expectation equation defined in Agent
 
         Returns:
-            tuple: tuple of the best action and the maximum achievable utility
+            tuple: tuple of the best action and the maximum achievable utility and the old utlity
         """
         #for now chose a random action
         #but make sure to not go out of bounds
@@ -35,6 +55,9 @@ class Policy():
         #we define the initial max_value as low as possible 
         max_value = -9999
         best_action = (0,0)
+        #first we define old utility, to track delta and determine convergion
+        i,j = current_position
+        old_value = value_matrix[i][j]
         for action in action_space:
             #calculate position of possible next state by adding the action (0,1) to the current state (2,3)
             #note that current_position is (y,x) so nextstate = (y+action_y,x+action_x)
@@ -53,7 +76,7 @@ class Policy():
                 best_action=action
         print(f"   best action of policy is {best_action} with value {max_value}")
 
-        return best_action, max_value
+        return best_action, max_value, old_value
 
 class Agent():
     def __init__(self, grid: Maze, policy: Policy) -> None:
@@ -97,7 +120,15 @@ class Agent():
         """
         return self.sample
     
-    def bellman(self, reward_sprime: int, utility_sprime: float, discount_factor: float, delta=0.01) -> float:
+    def get_policy(self) -> None:
+        """returns the policy of the policy of the agent. So all possible actions of the policy of the agent.
+
+        Returns:
+            list: all possible actions in form of tuples f.e. (0,1)=right
+        """
+        return self.policy.get_policyspace()
+    
+    def bellman(self, reward_sprime: int, utility_sprime: float, discount_factor: float) -> float:
         """calculates bellman equation in deterministic world
 
         Args:
@@ -136,16 +167,25 @@ class Agent():
             actionspace.remove((0,1))
         return actionspace
     
-    def iterate(self,exploration_rate,terminate_on_finalstate = False, limited_steps=1000) -> None:
+    def iterate(self,exploration_rate,terminate_on_finalstate = False, delta=0.01, limited_steps=1000) -> str:
         """iterates agents act function to simulate the mazes tables
+        Return:
+            returns string that determines if model is converged, based on condition 'max utility-diff < delta'
         """
+        utility_imporv_list = []
         for i in range(limited_steps):
-            self.act(exploration_rate)
+            # call act() function of agent
+            old_v, new_v = self.act(exploration_rate)
+            utility_imporv_list.append(new_v-old_v)
             if self.current_state.get_position() in self.maze.get_terminal_states() and terminate_on_finalstate:
                 print("Agent has reached terminal state, Agent is now being reset")
                 #reset state and position
                 self.current_state=self.maze.get_states()[self.start_position[0]][self.start_position[1]]
                 break
+        if max(utility_imporv_list)<delta:
+            return "Converged"
+        else:
+            return "Not Converged"
     
     def exploit(self, current_position: tuple, action: tuple, states: list) -> State:
         """step event: calculating new position in simulation when exploiting the policy. So it will always take the best action
@@ -197,11 +237,13 @@ class Agent():
 
 
 
-    def act(self, exploration_rate: float = 1.0) -> None:
+    def act(self, exploration_rate: float) -> tuple:
         """Filter actions, apply policy and update values and new state. Also maze.step is called to move the agent.
 
         Args:
-            exploration_rate (float, optional): Chance of exploring instead of exploiting. Defaults to 1.0.
+            exploration_rate (float, optional): Chance of exploring instead of exploiting. Defaults to 1.0
+        Return:
+            tuple of best action and old utility and updated utility 
         """
         print("\n")
         print(f"Start Agents act() function..")
@@ -215,7 +257,7 @@ class Agent():
         limited_actionspace = self.limit_actionspace_by_bounderies(total_actionspace, position_current_state)
         print(f"limited actionspace: ",limited_actionspace)
 
-        action, max_value = self.policy.select_action(limited_actionspace, self.current_state, self.maze.get_states(), self.maze.get_values(), self.bellman) 
+        action, max_value, old_value = self.policy.select_action(limited_actionspace, self.current_state, self.maze.get_states(), self.maze.get_values(), self.bellman) 
 
         #before we update value_matrix we update utility to 0 when calculating utility for terminal state
         if self.current_state.get_position() in self.maze.get_terminal_states():
@@ -235,5 +277,10 @@ class Agent():
 
         #now add new visited state to the agents sample
         self.sample.append(self.current_state)
+
+        #lastly update policy space with chosen action on old position
+        self.policy.update_policyspace(action, position_current_state)
+
+        return old_value, max_value
 
 
