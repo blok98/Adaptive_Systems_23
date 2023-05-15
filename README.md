@@ -12,7 +12,9 @@ Elke functie is voorzien van docstrings waarin wordt beschreven wat de functies 
 
 Bij elke sectie, behalve bij A & B, wordt een visualisatie gemaakt met pygame waarin het gedrag van de agent live gevolgd kan worden.
 In main.py kan aan het einde van de while loop de timer worden aangepast om de pauzes te verlagen en het model sneller te laten runnen.
-Ook kan de exploration rate aangepast worden in de iterate functie die ook aan het einde van de while loop staat.
+Ook kan de exploration rate aangepast worden in de iterate functie die ook aan het einde van de while loop staat. Dit is meer een voorbereiding voor opdrachten van 2.
+
+In de branch Utility-based-agent is de delta toegevoegd en wordt de policy gevisualiseerd en gereturned. Vanwege tijdsgebrek is dit niet toegepast voor de andere branches.
 
 Het verslag van AS1.2 geeft verder toelichting over de theorie, structuur van de code en de resultaten.
 
