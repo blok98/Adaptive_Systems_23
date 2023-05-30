@@ -254,7 +254,7 @@ class Agent():
         vs,qvalues,rs_prime,nextstate = self.maze.step(current_position, action)
         return vs,qvalues,rs_prime,nextstate
 
-    def act(self, exploration_rate: float) -> tuple:
+    def act(self) -> tuple:
         """Filter actions, apply policy and update values and new state. Also maze.step is called to move the agent.
 
         Args:

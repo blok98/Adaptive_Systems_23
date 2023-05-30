@@ -35,7 +35,7 @@ def visualize_maze(a1,m1):
         GRID_HEIGHT = shape[1]
         CELL_SIZE = scale
         # set the structure of the grid based on the mazes environment
-        grid = m1.get_values()
+        grid = m1.qvalue_matrix
 
         # sets the font for values
         font = pygame.font.Font(None, 22)
@@ -50,7 +50,7 @@ def visualize_maze(a1,m1):
 
         # set the utility values of the maze as the main values for the cells.
         status_visualisation = 0
-        grid = m1.get_values()
+        grid = m1.qvalue_matrix
         policy_space = a1.policy.get_policyspace()
 
         # here we define the settings and condition for stopping when model is converged
@@ -79,7 +79,7 @@ def visualize_maze(a1,m1):
                             grid = m1.get_reward_matrix()
                             status_visualisation=1
                         elif status_visualisation==1:
-                            grid = m1.get_values()
+                            grid = m1.qvalue_matrix
                             status_visualisation=0
 
             screen.fill(WHITE)
@@ -94,11 +94,11 @@ def visualize_maze(a1,m1):
 
                     # determine the color of the cell based on the utility value of the cell
 
-                    if grid[row][column] > 1:
+                    if sum(grid[row][column]) > 1:
                         color = GREEN
-                    elif grid[row][column]  >= 0:
+                    elif sum(grid[row][column])  >= 0:
                         color = YELLOW
-                    elif grid[row][column]  >= -1:
+                    elif sum(grid[row][column])  >= -1:
                         color = ORANGE
                     else:
                         color = RED
@@ -114,16 +114,40 @@ def visualize_maze(a1,m1):
                     # draw the cell in the window with corresponding cell, and color info
                     pygame.draw.rect(screen, color, [x, y, CELL_SIZE, CELL_SIZE])
 
+                    font = pygame.font.Font(None, 14)
                     # draw the utility value in the cell
-                    text = font.render(str(grid[row][column]), True, (0, 0, 0))
-                    text_rect = text.get_rect(center=(x + CELL_SIZE / 2, y + CELL_SIZE / 2))
-                    screen.blit(text, text_rect)
+                    offset = 15
+                    # Definieer een lijst met relatieve posities voor elke richting (boven, onder, links, rechts)
+                    directions = [(0, -1), (0, 1), (-1, 0), (1, 0), (0,0)]
+                    # Definieer een lijst met labels voor elke richting
+                    direction_labels = ['^', 'v', '<', '>', 'stay']
+
+                    # Bepaal de ruimte binnen de cel voor de waarden
+                    value_width = CELL_SIZE - 50
+                    value_height = CELL_SIZE - 50
+
+                    # Bepaal de breedte en hoogte van een individuele waarde binnen de cel
+                    value_cell_width = value_width / 2
+                    value_cell_height = value_height / 2
+
+                    # Loop door de actiewaarden en de richtingen
+                    for i, action_value in enumerate(grid[row][column]):
+                        # Bereken de positie van de tekst op basis van de richting
+                        dx, dy = directions[i]
+                        text_x = x + CELL_SIZE / 2 + dx * (value_cell_width)
+                        text_y = y + CELL_SIZE / 2 + dy * (value_cell_height)
+
+                        # Tekenen van de waarde op de juiste positie in de cel
+                        text = font.render(str(action_value), True, (0, 0, 0))
+                        text_rect = text.get_rect(center=(text_x, text_y))
+                        screen.blit(text, text_rect)
+
 
                     # draw the action in tuples in the cell
                     # first draw small font size
-                    small_font = pygame.font.Font(None, 12)
-                    text = small_font.render(str(policy_space[row][column]), True, (0, 0, 0))
-                    text_rect = text.get_rect(center=(x + CELL_SIZE / 2, y + CELL_SIZE / 1.5))
+                    small_font = pygame.font.Font(None, 20)
+                    text = small_font.render(str(direction_labels[directions.index(policy_space[row][column])]), True, (0, 0, 0))
+                    text_rect = text.get_rect(center=(x + CELL_SIZE / 2, y + CELL_SIZE / 2))
                     screen.blit(text, text_rect)
 
 
@@ -137,20 +161,11 @@ def visualize_maze(a1,m1):
             pygame.display.update()
 
             # move one step with agent
-            old_v, new_v = a1.act(exploration_rate=1)
-            utility_imporv_list.append(new_v-old_v)
-
-            # check for convergence to terminate or not
-            if current_position == (3,3):
-                if max(utility_imporv_list)<delta:
-                    status = "Converged"
-                else:
-                    status =  "Not Converged"
-
-                utility_imporv_list=[]
+            old_v, new_v = a1.act()
 
             # set timer for better visualization
-            sleep(0.2)
+            sleep(0.4)
+
 
         # quit pygame
         pygame.quit()
@@ -166,7 +181,7 @@ def policy_iteration(a1, delta=0.05, status="Not Converged"):
     utility_imporv_list = []
     while True:
         # move one step with agent
-        old_v, new_v = a1.act(exploration_rate=1)
+        old_v, new_v = a1.act()
         utility_imporv_list.append(new_v-old_v)
 
         # check for convergence to terminate or not
@@ -200,6 +215,7 @@ if __name__ == "__main__":
     # print(f"qvalues: {m1.qvalue_matrix}, perceive from (1,2) with action (0,1): {a1.perceive((1,2),(0,1))}")
 
     policy = a1.get_policy()
-    for i in range(20):
-        utility,max_utility = a1.act(0.5)
+    visualize_maze(a1,m1)
+    # for i in range(20):
+    #     utility,max_utility = a1.act()
     print(f'\n\n new qvalue matrix: {m1.qvalue_matrix}')
