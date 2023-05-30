@@ -6,8 +6,17 @@ import random
 
 class Policy():
     def __init__(self) -> None:
-        self.size=(0,0)
+        self.size=(4,4)
         self.policy_space = [[(0, 0)] * 4 for i in range(4)]
+        self.action_space = [(1,0),(-1,0),(0,1),(0,-1)]
+        self.qvalue_matrix = [[]]
+        self.set_initial_qvalues()
+
+    def set_initial_qvalues(self) -> None:
+        """Sets initial q values (state-action pairs) for Maze on 0. It can be random but cause terminal has to be 0 its easier to make everything 0.
+            It contains all utilities for each Q(s,a) per state. So there are size(actionspace) Q values per state, for self.size() amount of states.
+        """
+        self.qvalue_matrix = [[[0 for z in self.action_space] for i in range(self.size[0])] for j in range(self.size[1])]
     
     def set_size(self,size: tuple) -> None:
         """set size to prevent going out of bounds
@@ -25,8 +34,14 @@ class Policy():
             position (tuple): current position of the agent
         """
         self.policy_space[position[0]][position[1]]=chosen_action
-        print(f"new_policyspace: {self.policy_space}")
-        
+        # print(f"new_policyspace: {self.policy_space}")
+
+    def update_qvalue(self, qvalue, position, action):
+        #first we define actionindex of best action so we can place new qvalue on right position
+        action_index = self.action_space.index(action)
+        # print(f"update qvalue {qvalue}. qvalue {self.qvalue_matrix[position[0]][position[1]][action_index]} is replaced with {qvalue}.")
+        self.qvalue_matrix[position[0]][position[1]][action_index] = qvalue
+
     def get_policyspace(self):
         """returns 2D list of all actions chosen by the policy
 
@@ -35,19 +50,24 @@ class Policy():
         """
         return self.policy_space
     
+    def get_qvalues(self):
+        return self.qvalue_matrix
+    
     def TD_value_function(self, current_utility, reward_sprime, utility_sprime, discount_factor, learning_rate):
         return current_utility + learning_rate*(reward_sprime + discount_factor*utility_sprime-current_utility)
     
-    def TD_evaluate(self, nextstate_utilities, current_utility, actionspace):
-        #define lowest utility a.p. to overwrite until highest utility is written down
-        max_utility=-10**10
-        best_action = (0,0)
-        for i in range(len(nextstate_utilities)):
-            possible_utility = nextstate_utilities[i]
-            if possible_utility>max_utility:
-                max_utility=possible_utility
-                best_action=actionspace[i]
-        return max_utility,best_action
+    def Qlearning_choose_action(self,current_position,epsilon):
+        i,j = current_position
+        if random.random()>epsilon:
+            print("random action chosen")
+            action = random.choice(self.action_space)
+            max_qvalue = self.qvalue_matrix[i][j][self.action_space.index(action)]
+        else:
+            print("--max action chosen--")
+            max_qvalue = max((self.qvalue_matrix[i][j]))
+            action = self.action_space[self.qvalue_matrix[i][j].index(max_qvalue)]
+        print(f"utility {max_qvalue} out of all utilities: {self.qvalue_matrix[i][j]} has been chosen")
+        return action, max_qvalue
 
     def select_action(self,action_space: list, current_state: State, state_env: list, value_matrix: list, value_function) -> tuple:
         """determine best utility and best action by applying bellman expectation equation
@@ -65,7 +85,7 @@ class Policy():
         #for now chose a random action
         #but make sure to not go out of bounds
         #its defined as (n_column,n_row). so (2,3) is 3 right and 4 under
-        print(f"   policy function select_action started..")
+        # print(f"   policy function select_action started..")
         current_position = current_state.get_position()
         #we define the initial max_value as low as possible 
         max_value = -9999
@@ -89,7 +109,7 @@ class Policy():
             if currentstate_value>=max_value: 
                 max_value=currentstate_value
                 best_action=action
-        print(f"   best action of policy is {best_action} with value {max_value}")
+        # print(f"   best action of policy is {best_action} with value {max_value}")
 
         return best_action, max_value, old_value
 
@@ -98,7 +118,6 @@ class Agent():
         self.env=grid
         self.policy = policy
         self.current_state = None
-        self.value_func = self.bellman
         self.maze = grid
         #we define start_position in order to reset the agent in the environment when terminal state is reached
         self.start_position = (0,0)
@@ -143,118 +162,11 @@ class Agent():
         """
         return self.policy.get_policyspace()
 
-    def bellman(self, reward_sprime: int, utility_sprime: float, discount_factor: float) -> float:
-        """calculates bellman equation in deterministic world
+    def perceive(self,qvalue_matrix: list, current_position: tuple, action: tuple) -> tuple:
+        rs_prime,nextstate = self.maze.step(qvalue_matrix, current_position, action)
+        return rs_prime,nextstate
 
-        Args:
-            reward_sprime (int): reward of the next state
-            utility_sprime (float): utility of the next state
-            learning_rate (float): discount factor that determines relevance of future utilities
-            delta (float, optional): _description_. Defaults to 0.01.
-
-        Returns:
-            float: _description_
-        """
-        return reward_sprime + discount_factor*utility_sprime
-
-    def limit_actionspace_by_bounderies(self, actionspace: list, current_position: tuple) -> list:
-        """        removes all unavailable actions from the actionspace.
-        (position (3,0) has no business moving right in a 4x4 environment..)
-
-        Args:
-            actionspace (list): list of all possible actions the agent is capable of making
-            current_position (tuple): current position of the agents state
-
-        Returns:
-            _type_: list of all possible actions the agent can make based on its position (without actions that lead to 'out of scene')
-        """
-        #if current position is on the upper edge, remove upper move
-        if current_position[0]<=0:
-            actionspace.remove((-1,0))
-        #if current position is on the lower edge, remove upper move
-        if current_position[0]>=self.maze.size[0]-1:
-            actionspace.remove((1,0))
-        #if current position is on the left edge, remove left move
-        if current_position[1]<=0:
-            actionspace.remove((0,-1))
-        #if current position is on the right edge, remove right move
-        if current_position[1]>=self.maze.size[1]-1:
-            actionspace.remove((0,1))
-        return actionspace
-    
-    def iterate(self,exploration_rate,terminate_on_finalstate = False, delta=0.01, limited_steps=1000) -> str:
-        """iterates agents act function to simulate the mazes tables
-        Return:
-            returns string that determines if model is converged, based on condition 'max utility-diff < delta'
-        """
-        utility_imporv_list = []
-        for i in range(limited_steps):
-            # call act() function of agent
-            old_v, new_v = self.act(exploration_rate)
-            utility_imporv_list.append(new_v-old_v)
-            if self.current_state.get_position() in self.maze.get_terminal_states() and terminate_on_finalstate:
-                print("Agent has reached terminal state, Agent is now being reset")
-                #reset state and position
-                self.current_state=self.maze.get_states()[self.start_position[0]][self.start_position[1]]
-                break
-        if max(utility_imporv_list)<delta:
-            return "Converged"
-        else:
-            return "Not Converged"
-    
-    def exploit(self, current_position: tuple, action: tuple, states: list) -> State:
-        """step event: calculating new position in simulation when exploiting the policy. So it will always take the best action
-
-        Args:
-            current_position (tuple): current states position
-            action (tuple): best action chosen by policy (for example one to the right (0,1))
-            states (list): 2D list of all states
-
-        Returns:
-            State: new state based on taken action
-        """
-        #makes the agent take an action - moving to another cell
-        new_position = (current_position[0]+action[0],current_position[1]+action[1])
-        print(f"old position: {current_position}, action: {action}, new position: {new_position}, ",end="")
-        new_state = states[new_position[0]][new_position[1]]
-        print(f"new state: {new_state}")
-        #we only return the new state, all values (pos,reward) are just attribute to that state
-        return new_state
-    
-    def explore(self,state: State,limited_actionspace: list,state_matrix: list) -> State:
-        """ go to the next in line state in order to loop through update the utility of all states 
-        note this function assumes agent starts at position 0,0 and loops from left to right, from up to down
-
-        Args:
-            state (State): current state
-            limited_actionspace (list): all possible actions based on current position
-            state_matrix (list): 2D list of all states
-
-        Returns:
-            State: new state based on taken action
-        """
-        state_position = state.get_position()
-        if (0,1) in limited_actionspace:
-            #if right move is in actionspace, go right
-            new_state_position=(state_position[0],state_position[1]+1)
-        elif (1,0) in limited_actionspace:
-            #if agent is on right edge, but can still go down, go to the left edge and one cell down
-            new_state_position=(state_position[0]+1,0)        
-        else:
-            #if agent cant go right nor down, terminate (or go to first state again)
-            new_state_position=(0,0)
-   
-        print(f"old position: {state_position}, new position: {new_state_position}")
-        x,y = new_state_position
-        new_state = state_matrix[x][y]
-        print(new_state.get_position())
-        return new_state
-
-    def perceive(self,current_position: tuple, action: tuple) -> tuple:
-        vs,qvalues,rs_prime,nextstate = self.maze.step(current_position, action)
-        return vs,qvalues,rs_prime,nextstate
-
-    def act(self) -> tuple:
+    def act(self, discount_factor: float, learning_rate: float, epsilon: float) -> tuple:
         """Filter actions, apply policy and update values and new state. Also maze.step is called to move the agent.
 
         Args:
@@ -262,43 +174,44 @@ class Agent():
         Return:
             tuple of best action and old utility and updated utility 
         """
-        print("\n")
-        print(f"Start Agents act() function..")
+        # print("\n")
+        # print(f"Start Agents act() function..")
         #first define current position and current chosen action by the policy.
         position_current_state = self.current_state.get_position()  #(0,0)
         #chooses an action based on the policy, that reads the state and actionspace
         #we use list(..) to copy the value in maze, instead of changing it
         total_actionspace = list(self.maze.get_actionspace())   #[(1,0),(-1,0)...]
-
-        action = random.choice(total_actionspace)
+        
+        # print(f"chose action {action} out of {total_actionspace}")
+        action, utility = self.policy.Qlearning_choose_action(position_current_state, epsilon)
 
         #perceive values of situation Agent is in (remember TD means agent only knows about current state & rewards and values of current state and next state)
-        utility, nextstate_utilities, nextstate_reward, nextstate = self.perceive(position_current_state, action) #5, [4,5,2,2], 7
-        print(f"next state utilities: {nextstate_utilities}")
+        nextstate_reward, nextstate = self.perceive(self.policy.get_qvalues(),position_current_state,action) #5, [4,5,2,2], 7
 
         #update new state. This makes the agent know its new position
         self.current_state=nextstate
 
-        max_utility, best_action = self.policy.TD_evaluate(nextstate_utilities, utility,total_actionspace)
-        print(f"max found utility for next state {max_utility}")
-        print(f"best found action for next state {best_action}")
+        #we re-use policy choose action function with epsilon=0 to get the max qvalue for the next state
+        _, nextstate_utility = self.policy.Qlearning_choose_action(nextstate.get_position(),epsilon=0)
 
         #calculate new utility...
-        new_utility = self.policy.TD_value_function(utility,nextstate_reward,max_utility,1,1)
+        new_utility = self.policy.TD_value_function(utility,nextstate_reward,nextstate_utility,discount_factor,learning_rate)
 
         #before we update value_matrix we update utility to 0 when calculating utility for terminal state
         if self.current_state.get_position() in self.maze.get_terminal_states():
-            max_utility=0
+            new_utility=0
+        #if final state is reached, also put utility on 0.
+        if position_current_state in self.maze.get_terminal_states():
+            new_utility=0
         
         #update utility matrix based on the calculated value of the old state (so update state 0 with utility of the best next state)
-        self.maze.update_qvalue(new_utility, position_current_state, action)
+        self.policy.update_qvalue(new_utility, position_current_state, action)
 
         #now add new visited state to the agents sample
         self.sample.append(self.current_state)
 
         #lastly update policy space with chosen action on old position
         self.policy.update_policyspace(action, position_current_state)
+        print(f"utility: {utility}, first_action: {action}, next reward: {nextstate_reward}, next utility: {nextstate_utility}, updated_utility: {new_utility}, next_position: {nextstate.get_position()}")
 
-        return utility, max_utility
-
-
+        return utility, new_utility

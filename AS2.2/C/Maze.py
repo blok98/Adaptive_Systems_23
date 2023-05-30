@@ -9,12 +9,10 @@ class Maze():
         self.size= (len(reward_matrix[0]),len(reward_matrix))
         self.reward_matrix = reward_matrix
         self.value_matrix = [[]]
-        self.qvalue_matrix = [[]]
         self.action_space = [(1,0),(-1,0),(0,1),(0,-1)]
         #immediately set the initial states
         self.set_initial_states()
         self.set_v_values()
-        self.set_initial_qvalues()
     
     def set_initial_states(self) -> None:
         """sets state objects to Maze class
@@ -37,12 +35,6 @@ class Maze():
         """initialises all utilities on value 0
         """
         self.value_matrix = [[0 for i in range(self.size[0])] for j in range(self.size[1])]
-    
-    def set_initial_qvalues(self) -> None:
-        """Sets initial q values (state-action pairs) for Maze on 0. It can be random but cause terminal has to be 0 its easier to make everything 0.
-            It contains all utilities for each Q(s,a) per state. So there are size(actionspace) Q values per state, for self.size() amount of states.
-        """
-        self.qvalue_matrix = [[[int(f"{j}{i}{self.action_space.index(z)}") for z in self.action_space] for i in range(self.size[0])] for j in range(self.size[1])] 
     
 
     def get_states(self) -> list:
@@ -107,20 +99,16 @@ class Maze():
             position (tuple): position of new state that represents utility of that new state
         """
         
-        print(f"      update function of maze has started..")
-        print(f"      the max utility {value} is updated on position {position}.")
-        print(f"      old value matrix: {self.value_matrix}")
+        # print(f"      update function of maze has started..")
+        # print(f"      the max utility {value} is updated on position {position}.")
+        # print(f"      old value matrix: {self.value_matrix}")
         #we need to update de value matrix based on a position (x,y). 
         self.value_matrix[position[0]][position[1]] = value
-        print(f"      new value matrix: {self.value_matrix}")
+        # print(f"      new value matrix: {self.value_matrix}")
     
-    def update_qvalue(self, qvalue, position, action):
-        #first we define actionindex of best action so we can place new qvalue on right position
-        action_index = self.action_space.index(action)
-        print(f"update qvalue {qvalue}. qvalue {self.qvalue_matrix[position[0]][position[1]][action_index]} is replaced with {qvalue}.")
-        self.qvalue_matrix[position[0]][position[1]][action_index] = qvalue
 
-    def step(self,current_position: tuple, action: tuple) -> State:
+
+    def step(self,qvalue_matrix: list, current_position: tuple, action: tuple) -> State:
         """makes the agent take an action - moving to another cell
 
         Args:
@@ -133,26 +121,23 @@ class Maze():
         #index of current q value is calculated by finding the index of the action in the actionspace
         #so action (-1,0) for qvalues [[2,2],[3,3],[4,4],[5,5]] returns qvalue [3,3] cause (-1,0) is placed on index 1 in actionspace.
         qvalue_indx = self.action_space.index(action)
-        current_qvalue = self.qvalue_matrix[current_position[0]][current_position[1]][qvalue_indx]
+        current_qvalue = qvalue_matrix[current_position[0]][current_position[1]][qvalue_indx]
         new_x,new_y = (current_position[0]+action[0],current_position[1]+action[1])
         #if chosen action goes out of bounds, stay, else update new position
         if new_x<0 or new_x>=self.size[0] or new_y<0 or new_y>=self.size[1]:
             new_position=current_position
-            #doesnt matter what nextstate qvalues are, but they must be low to prevent agent from exploiting going out of bounds
-            #reason it doesnt matter is that new position is that agent doesnt act on best q value for next state.
-            nextstate_qvalues=[-100,-100,-100,-100]
-            nextstate_reward=-100
         else:
             new_position = (current_position[0]+action[0],current_position[1]+action[1])
-            # we use list method to make sure we dont change reference of qvalue matrix
-            nextstate_qvalues = list(self.qvalue_matrix[new_position[0]][new_position[1]])
-            nextstate_reward = self.reward_matrix[new_position[0]][new_position[1]]
-        print(f"old position: {current_position}, action: {action}, new position: {new_position}")
-        print(f"nextstate qvalues{nextstate_qvalues}")
+        # we use list method to make sure we dont change reference of qvalue matrix
+        nextstate_qvalues = list(qvalue_matrix[new_position[0]][new_position[1]])
+        nextstate_reward = self.reward_matrix[new_position[0]][new_position[1]]
+        # print(f"old position: {current_position}, action: {action}, new position: {new_position}")
+        # print(f"nextstate qvalues{nextstate_qvalues}")
+
 
         nextstate = self.states[new_position[0]][new_position[1]]
 
         #we only return the new state, all values (pos,reward) are just attribute to that state
-        return current_qvalue,nextstate_qvalues,nextstate_reward,nextstate
+        return nextstate_reward,nextstate
 
     
