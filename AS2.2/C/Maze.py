@@ -8,11 +8,9 @@ class Maze():
         self.final_state = final_state
         self.size= (len(reward_matrix[0]),len(reward_matrix))
         self.reward_matrix = reward_matrix
-        self.value_matrix = [[]]
         self.action_space = [(1,0),(-1,0),(0,1),(0,-1)]
         #immediately set the initial states
         self.set_initial_states()
-        self.set_v_values()
     
     def set_initial_states(self) -> None:
         """sets state objects to Maze class
@@ -30,12 +28,6 @@ class Maze():
                 s = State((i,j),reward,terminal)
                 row.append(s)
             self.states.append(row)
-    
-    def set_v_values(self) -> None:
-        """initialises all utilities on value 0
-        """
-        self.value_matrix = [[0 for i in range(self.size[0])] for j in range(self.size[1])]
-    
 
     def get_states(self) -> list:
         """returns all states of the environment
@@ -44,14 +36,6 @@ class Maze():
             list: list of all state objects
         """
         return self.states
-    
-    def get_values(self) -> None:
-        """returns utilities
-
-        Returns:
-            _type_: 2D list of all utilities
-        """
-        return self.value_matrix
 
     def get_size(self) -> tuple:
         """Returns the shape of the environment
@@ -84,29 +68,9 @@ class Maze():
             list: 2d list of the matrix containing state rewards
         """
         return self.reward_matrix
-    
-    def get_value(self, pos):
-        return self.value_matrix[pos[0]][pos[1]]
 
     def get_reward(self,pos):
-        return self.reward_matrix[pos[0]][pos[1]]
-    
-    def update_value_matrix(self, value: float, position: tuple) -> None:
-        """update value on current state position after policy has calculated new action
-
-        Args:
-            value (float): new calculated utility that needs to be assigend to the right position
-            position (tuple): position of new state that represents utility of that new state
-        """
-        
-        # print(f"      update function of maze has started..")
-        # print(f"      the max utility {value} is updated on position {position}.")
-        # print(f"      old value matrix: {self.value_matrix}")
-        #we need to update de value matrix based on a position (x,y). 
-        self.value_matrix[position[0]][position[1]] = value
-        # print(f"      new value matrix: {self.value_matrix}")
-    
-
+        return self.reward_matrix[pos[0]][pos[1]]  
 
     def step(self,qvalue_matrix: list, current_position: tuple, action: tuple) -> State:
         """makes the agent take an action - moving to another cell
