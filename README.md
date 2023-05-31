@@ -11,7 +11,7 @@ Branch:
 
 Elke functie is voorzien van docstrings waarin wordt beschreven wat de functies en argumenten doen.
 
-<b>1.2</b>
+<b>1.2</b><br>
   Bij elke sectie, behalve bij A & B van 1.2, wordt een visualisatie gemaakt met pygame waarin het gedrag van de agent live gevolgd kan worden.
 In main.py kan aan het einde van de while loop de timer worden aangepast om de pauzes te verlagen en het model sneller te laten runnen.
 Ook kan de epsilon aangepast worden in de iterate functie die ook aan het einde van de while loop staat. Dit is meer een voorbereiding voor opdrachten van 2.
@@ -22,7 +22,7 @@ De window kan simpelweg gesloten worden zodat de utilities en de policy in de te
 
 Het verslag van AS1.2 geeft verder toelichting over de theorie, structuur van de code en de resultaten.
 
-<b>2.2</b>
+<b>2.2</b><br>
   Om de simulatie van 2.2 te runnen kan in main.py - __main__ de run() functie en de visualize_maze() functie aangeroepen worden. Visualize_maze() laat stap voor stap zien hoe de qvalues worden geupdatet in een pygame visualisatie. De run() functie is bedoeld om grote hoeveelheden episodes te runnen en laat alleen de laatste stappen binnen een visualisatie zien. De parameters voor beide functies zijn hetzelfde en omvatten de agent, de maze, step_time = 0.3, discount_factor, learning_rate ,epsilon, en n_episodes. De step_time geeft aan hoe snel de visualisatie runt, maar heeft geen invloed op de runtime bij run(). 
 
 De huidige settings die gebruikt zijn:
