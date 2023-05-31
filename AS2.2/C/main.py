@@ -25,8 +25,6 @@ def run(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learning_rate=1,ep
     visualize_maze(a1,m1,step_time,discount_factor,learning_rate,epsilon,endvisualisation_time)
 
 def visualize_maze(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learning_rate=1,epsilon=0.2,n_episodes=1):
-    # its defined as (n_row,n_column). so (2,3) is 3 under and 4 right"
-
     # define colors we gonne use for the visualisation cells
     WHITE = (255, 255, 255)
     GRAY = (200, 200, 200)
@@ -68,18 +66,13 @@ def visualize_maze(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learnin
     # set the utility values of the maze as the main values for the cells.
     status_visualisation = 0
     grid = p1.qvalue_matrix
-    print(f"aaaaa {p1.qvalue_matrix}")
     policy_space = a1.policy.get_policyspace()
-
-    # here we define the settings and condition for stopping when model is converged
-    utility_imporv_list = []
-    delta = 0.01
 
     # first we make a game loop in which we update the visualisation based on the agents actions
     running = True
     status = "Not converged"
     episode_num = 0
-    while True:
+    while running:
         # define current position
         current_position=a1.get_current_state().get_position()
         # make sure that when model is converged agent stays at position 3,3 so the model stops running (it doesn't but i wont explore the world anymore)
@@ -112,15 +105,12 @@ def visualize_maze(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learnin
         screen.fill(WHITE)
 
         # draw the grid.
-        # We switch row and column for drawing the states, because we define coordinates as (x,y).
-        # So a write for x=2, y=3 is done by writing to grid[2][3] or grid[column][row]
         for row in range(GRID_HEIGHT):
             for column in range(GRID_WIDTH):
                 x = column * CELL_SIZE
                 y = row * CELL_SIZE
 
                 # determine the color of the cell based on the utility value of the cell
-
                 if sum(grid[row][column]) > 1:
                     color = GREEN
                 elif sum(grid[row][column])  >= 0:
@@ -131,7 +121,6 @@ def visualize_maze(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learnin
                     color = RED
 
                 # now we recolor the cell the agent is currently in
-                # we make sure to flip the coordinates (column,row) because we maintained (x,y) coordinates (probably stupid)
                 if (row,column) == current_position:
                     color = BLUE
                 # now recolor start position
@@ -143,7 +132,6 @@ def visualize_maze(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learnin
 
                 font = pygame.font.Font(None, 20)
                 # draw the utility value in the cell
-                offset = 15
                 # Definieer een lijst met relatieve posities voor elke richting (boven, onder, links, rechts)
                 directions = [(0, 1), (0, -1), (1, 0), (-1, 0),(0,0)]  # [rechts, links, omlaag, omhoog]
                 direction_labels = ['>', '<', 'v', '^','']
@@ -168,14 +156,12 @@ def visualize_maze(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learnin
                     text_rect = text.get_rect(center=(text_x, text_y))
                     screen.blit(text, text_rect)
 
-
                 # draw the action in tuples in the cell
                 # first draw small font size
                 small_font = pygame.font.Font(None, 40)
                 text = small_font.render(str(direction_labels[directions.index(policy_space[row][column])]), True, (0, 0, 0))
                 text_rect = text.get_rect(center=(x + CELL_SIZE / 2, y + CELL_SIZE / 2))
                 screen.blit(text, text_rect)
-
 
         pygame.draw.rect(screen, button_color, button_rect)
         current_visualisation=["utility","reward"][status_visualisation]   
@@ -192,37 +178,8 @@ def visualize_maze(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learnin
         # set timer for better visualization
         sleep(step_time)
 
-
     # quit pygame
     pygame.quit()
-
-    sample = a1.get_sample()
-
-    # print("sample: ", [state.get_position() for state in sample])
-    # print("\n\nModel has converged..")
-    # print("value matrix: ", m1.value_matrix)
-    # print("policy: ",a1.get_policy())
-
-
-def policy_iteration(a1, delta=0.05, status="Not Converged"):
-    utility_imporv_list = []
-    while True:
-        # move one step with agent
-        old_v, new_v = a1.act()
-        utility_imporv_list.append(new_v-old_v)
-
-        # check for convergence to terminate or not
-        current_position=a1.get_current_state().get_position()
-        if current_position == (3,3):
-            if max(utility_imporv_list)<delta:
-                status = "Converged"
-            else:
-                status =  "Not Converged"
-
-            utility_imporv_list=[]
-        if status == "Converged":
-            return a1
-
 
 if __name__ == "__main__":
     reward_matrix = [[-1,-1,-1,40],
@@ -231,16 +188,13 @@ if __name__ == "__main__":
                     [10,-2,-1,-1]]
     # final states (finish) are located in the upper right and lower left corners
     final_states = [(3,0),(0,3)]
-    # we chose starting point (0,0) because we want to explore the env and loop through all states
     starting_position = (0,0)
     m1 = Maze(reward_matrix, final_states)
-    # print(m1.qvalue_matrix)
     p1 = Policy()
     a1 = Agent(m1,p1)
     a1.set_current_state(starting_position)
-    # print(f"qvalues: {m1.qvalue_matrix}, perceive from (1,2) with action (0,1): {a1.perceive((1,2),(0,1))}")
 
     policy = a1.get_policy()
-    # run(a1,m1, 0.2, discount_factor=1,learning_rate=1,epsilon=0.2,n_episodes=10, endvisualisation_time=50)
-    run(a1,m1,step_time = 0.7,discount_factor=1,learning_rate=0.2,epsilon=0.2, n_episodes=1000000)
+    run(a1,m1, 0.3, discount_factor=1,learning_rate=0.2,epsilon=0.2,n_episodes=1000, endvisualisation_time=50)
+    #visualize_maze(a1,m1,step_time = 0.3,discount_factor=1,learning_rate=0.2,epsilon=0.2, n_episodes=100)
     print(f'\n\n new qvalue matrix: {p1.qvalue_matrix}')

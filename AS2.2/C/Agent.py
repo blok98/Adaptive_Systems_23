@@ -11,12 +11,6 @@ class Policy():
         self.action_space = [(1,0),(-1,0),(0,1),(0,-1)]
         self.qvalue_matrix = [[]]
         self.set_initial_qvalues()
-
-    def set_initial_qvalues(self) -> None:
-        """Sets initial q values (state-action pairs) for Maze on 0. It can be random but cause terminal has to be 0 its easier to make everything 0.
-            It contains all utilities for each Q(s,a) per state. So there are size(actionspace) Q values per state, for self.size() amount of states.
-        """
-        self.qvalue_matrix = [[[0 for z in self.action_space] for i in range(self.size[0])] for j in range(self.size[1])]
     
     def set_size(self,size: tuple) -> None:
         """set size to prevent going out of bounds
@@ -25,6 +19,12 @@ class Policy():
             size (tuple): the shape of the grid, used for taking action
         """
         self.size=size
+
+    def set_initial_qvalues(self) -> None:
+        """Sets initial q values (state-action pairs) for Maze on 0. It can be random but cause terminal has to be 0 its easier to make everything 0.
+            It contains all utilities for each Q(s,a) per state. So there are size(actionspace) Q values per state, for self.size() amount of states.
+        """
+        self.qvalue_matrix = [[[0 for z in self.action_space] for i in range(self.size[0])] for j in range(self.size[1])]
     
     def update_policyspace(self,chosen_action: tuple,position: tuple) -> None:
         """updates policy space of the Policy (and Agent) by replacing current action (tuple) by chosen action on old position
@@ -36,13 +36,20 @@ class Policy():
         self.policy_space[position[0]][position[1]]=chosen_action
         # print(f"new_policyspace: {self.policy_space}")
 
-    def update_qvalue(self, qvalue, position, action):
+    def update_qvalue(self, qvalue: float, position: tuple, action: tuple) -> None:
+        """Updates new calculated q value by replacing the corresponding value in the qvalue matrix
+
+        Args:
+            qvalue (float): new calculated q value current state to next state: Q(s,a)
+            position (tuple): current state: s
+            action (tuple): action to next state: a
+        """
         #first we define actionindex of best action so we can place new qvalue on right position
         action_index = self.action_space.index(action)
         # print(f"update qvalue {qvalue}. qvalue {self.qvalue_matrix[position[0]][position[1]][action_index]} is replaced with {qvalue}.")
         self.qvalue_matrix[position[0]][position[1]][action_index] = qvalue
 
-    def get_policyspace(self):
+    def get_policyspace(self) -> list:
         """returns 2D list of all actions chosen by the policy
 
         Returns:
@@ -50,13 +57,36 @@ class Policy():
         """
         return self.policy_space
     
-    def get_qvalues(self):
+    def get_qvalues(self) -> list:
         return self.qvalue_matrix
     
-    def Qlearning_value_function(self, current_utility, reward_sprime, utility_sprime, discount_factor, learning_rate):
+    def Qlearning_value_function(self, current_utility: float, reward_sprime: float, utility_sprime: float, discount_factor: float, learning_rate: float) -> float:
+        """calculates new qvalue based on the Qlearning-formula
+
+        Args:
+            current_utility (float): qvalue from current position to next position: Q(s,a)
+            reward_sprime (float): reward R of next state s'
+            utility_sprime (float): max qvalue from next state to the state after that: Q(s',a')
+            discount_factor (float): weighting of future expected returns: Y
+            learning_rate (float): weighting of error: a
+
+        Returns:
+            float: new calculated qvalue of current state to next position: Q(s,a)
+        """
         return current_utility + learning_rate*(reward_sprime + discount_factor*utility_sprime-current_utility)
     
-    def Qlearning_choose_action(self,current_position,epsilon):
+    def Qlearning_choose_action(self,current_position: tuple, epsilon:float) -> tuple:
+        """chooses action and qvalue randomly or according to ARGMAX depending on epsilon.
+        This function is called twice for the first step (Q(s,a)) and the second step (Q(s',a'))
+        Second step has no exploration so at the second step epsilon is set to 0
+
+        Args:
+            current_position (tuple): current position of the agent: s
+            epsilon (float): chance to explore instead of exploit: e
+
+        Returns:
+            tuple: chosen action and corresponding qvalue
+        """
         i,j = current_position
         if random.random()>epsilon:
             #print("random action chosen")
@@ -119,6 +149,16 @@ class Agent():
         return self.policy.get_policyspace()
 
     def perceive(self,qvalue_matrix: list, current_position: tuple, action: tuple) -> tuple:
+        """Perceive function of agent that calls the Maze.step function and observes reward and new position
+
+        Args:
+            qvalue_matrix (list): all qvalues known to the agent, located in Policy
+            current_position (tuple): current position of the agent: s
+            action (tuple): action chosen by Qlearning_choose_action(): a
+
+        Returns:
+            tuple: reward of next state, State object of next state
+        """
         rs_prime,nextstate = self.maze.step(qvalue_matrix, current_position, action)
         return rs_prime,nextstate
 
@@ -126,19 +166,15 @@ class Agent():
         """Filter actions, apply policy and update values and new state. Also maze.step is called to move the agent.
 
         Args:
-            exploration_rate (float, optional): Chance of exploring instead of exploiting. Defaults to 1.0
-        Return:
-            tuple of best action and old utility and updated utility 
+            discount_factor (float): weighting of future expected returns: Y
+            learning_rate (float): weighting of error: a
+            epsilon (float): chance of exploring instead of exploiting
+
+        Returns:
+            tuple: returns the old qvalue and the new calculated qvalue
         """
-        # print("\n")
-        # print(f"Start Agents act() function..")
-        #first define current position and current chosen action by the policy.
         position_current_state = self.current_state.get_position()  #(0,0)
-        #chooses an action based on the policy, that reads the state and actionspace
-        #we use list(..) to copy the value in maze, instead of changing it
-        total_actionspace = list(self.maze.get_actionspace())   #[(1,0),(-1,0)...]
         
-        # print(f"chose action {action} out of {total_actionspace}")
         action, utility = self.policy.Qlearning_choose_action(position_current_state, epsilon)
 
         #perceive values of situation Agent is in (remember TD means agent only knows about current state & rewards and values of current state and next state)

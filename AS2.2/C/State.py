@@ -12,13 +12,5 @@ class State():
         """
         return self.position
     
-    def get_reward(self) -> int:
-        """returns reward of the state
-
-        Returns:
-            int: reward of the state
-        """
-        return self.reward
-    
     def __str__(self):
         return f"State( {self.position}, {self.reward}, {self.terminal} )"

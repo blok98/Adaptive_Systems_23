@@ -1,5 +1,4 @@
 from State import State
-import random
 
 class Maze():
     def __init__(self,reward_matrix: list,final_state: list) -> None:
@@ -82,10 +81,6 @@ class Maze():
         Returns:
             State: the new state after taking the given action
         """
-        #index of current q value is calculated by finding the index of the action in the actionspace
-        #so action (-1,0) for qvalues [[2,2],[3,3],[4,4],[5,5]] returns qvalue [3,3] cause (-1,0) is placed on index 1 in actionspace.
-        qvalue_indx = self.action_space.index(action)
-        current_qvalue = qvalue_matrix[current_position[0]][current_position[1]][qvalue_indx]
         new_x,new_y = (current_position[0]+action[0],current_position[1]+action[1])
         #if chosen action goes out of bounds, stay, else update new position
         if new_x<0 or new_x>=self.size[0] or new_y<0 or new_y>=self.size[1]:
@@ -93,14 +88,8 @@ class Maze():
         else:
             new_position = (current_position[0]+action[0],current_position[1]+action[1])
         # we use list method to make sure we dont change reference of qvalue matrix
-        nextstate_qvalues = list(qvalue_matrix[new_position[0]][new_position[1]])
         nextstate_reward = self.reward_matrix[new_position[0]][new_position[1]]
-        # print(f"old position: {current_position}, action: {action}, new position: {new_position}")
-        # print(f"nextstate qvalues{nextstate_qvalues}")
-
-
         nextstate = self.states[new_position[0]][new_position[1]]
-
         #we only return the new state, all values (pos,reward) are just attribute to that state
         return nextstate_reward,nextstate
 
