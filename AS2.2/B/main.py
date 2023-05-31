@@ -195,6 +195,6 @@ if __name__ == "__main__":
     a1.set_current_state(starting_position)
 
     policy = a1.get_policy()
-    run(a1,m1, step_time = 0.3, discount_factor=1,learning_rate=0.2,epsilon=0.2,n_episodes=1000000)
+    run(a1,m1, step_time = 0.3, discount_factor=1,learning_rate=0.2,epsilon=0.2,n_episodes=1000)
     #visualize_maze(a1,m1,step_time = 0.3,discount_factor=1,learning_rate=0.2,epsilon=0.2, n_episodes=100)
     print(f'\n\n new qvalue matrix: {p1.qvalue_matrix}')

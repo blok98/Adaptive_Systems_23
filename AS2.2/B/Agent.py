@@ -60,8 +60,8 @@ class Policy():
     def get_qvalues(self) -> list:
         return self.qvalue_matrix
     
-    def Qlearning_value_function(self, current_utility: float, reward_sprime: float, utility_sprime: float, discount_factor: float, learning_rate: float) -> float:
-        """calculates new qvalue based on the Qlearning-formula
+    def SARSA_value_function(self, current_utility: float, reward_sprime: float, utility_sprime: float, discount_factor: float, learning_rate: float) -> float:
+        """calculates new qvalue based on the SARSA-formula
 
         Args:
             current_utility (float): qvalue from current position to next position: Q(s,a)
@@ -75,7 +75,7 @@ class Policy():
         """
         return current_utility + learning_rate*(reward_sprime + discount_factor*utility_sprime-current_utility)
     
-    def Qlearning_choose_action(self,current_position: tuple, epsilon:float) -> tuple:
+    def SARSA_choose_action(self,current_position: tuple, epsilon:float) -> tuple:
         """chooses action and qvalue randomly or according to ARGMAX depending on epsilon.
         This function is called twice for the first step (Q(s,a)) and the second step (Q(s',a'))
         Second step has no exploration so at the second step epsilon is set to 0
@@ -154,7 +154,7 @@ class Agent():
         Args:
             qvalue_matrix (list): all qvalues known to the agent, located in Policy
             current_position (tuple): current position of the agent: s
-            action (tuple): action chosen by Qlearning_choose_action(): a
+            action (tuple): action chosen by SARSA_choose_action(): a
 
         Returns:
             tuple: reward of next state, State object of next state
@@ -175,7 +175,7 @@ class Agent():
         """
         position_current_state = self.current_state.get_position()  #(0,0)
         
-        action, utility = self.policy.Qlearning_choose_action(position_current_state, epsilon)
+        action, utility = self.policy.SARSA_choose_action(position_current_state, epsilon)
 
         #perceive values of situation Agent is in (remember TD means agent only knows about current state & rewards and values of current state and next state)
         nextstate_reward, nextstate = self.perceive(self.policy.get_qvalues(),position_current_state,action) #5, [4,5,2,2], 7
@@ -183,11 +183,11 @@ class Agent():
         #update new state. This makes the agent know its new position
         self.current_state=nextstate
 
-        #we re-use policy choose action function with epsilon=0 to get the max qvalue for the next state
-        _, nextstate_utility = self.policy.Qlearning_choose_action(nextstate.get_position(),epsilon)
+        #we re-use policy choose action function with the same epsilon, cause SARSA uses exploration for both first as next step
+        _, nextstate_utility = self.policy.SARSA_choose_action(nextstate.get_position(),epsilon)
 
         #calculate new utility...
-        new_utility = self.policy.Qlearning_value_function(utility,nextstate_reward,nextstate_utility,discount_factor,learning_rate)
+        new_utility = self.policy.SARSA_value_function(utility,nextstate_reward,nextstate_utility,discount_factor,learning_rate)
 
         #if final state is reached, also put utility on 0. We look at old position, not the updated one cause we want to determine place of current state.
         if position_current_state in self.maze.get_terminal_states():
