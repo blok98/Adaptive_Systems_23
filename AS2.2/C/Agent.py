@@ -88,7 +88,7 @@ class Policy():
             tuple: chosen action and corresponding qvalue
         """
         i,j = current_position
-        if random.random()>epsilon:
+        if random.random()<epsilon:
             #print("random action chosen")
             action = random.choice(self.action_space)
             max_qvalue = self.qvalue_matrix[i][j][self.action_space.index(action)]
