@@ -9,7 +9,7 @@ class Policy():
         self.size=(4,4)
         self.policy_space = [[(0, 0)] * 4 for i in range(4)]
         self.action_space = [(1,0),(-1,0),(0,1),(0,-1)]
-        self.qvalue_matrix = [[]]
+        self.utility_matrix = [[]]
         self.set_initial_qvalues()
     
     def set_size(self,size: tuple) -> None:
@@ -20,11 +20,11 @@ class Policy():
         """
         self.size=size
 
-    def set_initial_qvalues(self) -> None:
+    def set_initial_utilities(self) -> None:
         """Sets initial q values (state-action pairs) for Maze on 0. It can be random but cause terminal has to be 0 its easier to make everything 0.
             It contains all utilities for each Q(s,a) per state. So there are size(actionspace) Q values per state, for self.size() amount of states.
         """
-        self.qvalue_matrix = [[[0 for z in self.action_space] for i in range(self.size[0])] for j in range(self.size[1])]
+        self.utility_matrix = [[0 for i in range(self.size[0])] for j in range(self.size[1])]
     
     def update_policyspace(self,chosen_action: tuple,position: tuple) -> None:
         """updates policy space of the Policy (and Agent) by replacing current action (tuple) by chosen action on old position
