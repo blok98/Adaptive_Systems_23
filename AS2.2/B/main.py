@@ -50,7 +50,7 @@ def visualize_maze(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learnin
     GRID_HEIGHT = shape[1]
     CELL_SIZE = scale
     # set the structure of the grid based on the mazes environment
-    grid = p1.qvalue_matrix
+    grid = p1.utility_matrix
 
     # sets the font for values
     font = pygame.font.Font(None, 22)
@@ -65,7 +65,7 @@ def visualize_maze(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learnin
 
     # set the utility values of the maze as the main values for the cells.
     status_visualisation = 0
-    grid = p1.qvalue_matrix
+    grid = p1.get_utilities()
     policy_space = a1.policy.get_policyspace()
 
     # first we make a game loop in which we update the visualisation based on the agents actions
@@ -99,7 +99,7 @@ def visualize_maze(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learnin
                         grid = m1.get_reward_matrix()
                         status_visualisation=1
                     elif status_visualisation==1:
-                        grid = m1.qvalue_matrix
+                        grid = p1.get_utilities()
                         status_visualisation=0
 
         screen.fill(WHITE)
@@ -111,11 +111,11 @@ def visualize_maze(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learnin
                 y = row * CELL_SIZE
 
                 # determine the color of the cell based on the utility value of the cell
-                if sum(grid[row][column]) > 1:
+                if grid[row][column] > 1:
                     color = GREEN
-                elif sum(grid[row][column])  >= 0:
+                elif grid[row][column]  >= 0:
                     color = YELLOW
-                elif sum(grid[row][column])  >= -1:
+                elif grid[row][column]  >= -1:
                     color = ORANGE
                 else:
                     color = RED
@@ -136,31 +136,19 @@ def visualize_maze(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learnin
                 directions = [(0, 1), (0, -1), (1, 0), (-1, 0),(0,0)]  # [rechts, links, omlaag, omhoog]
                 direction_labels = ['>', '<', 'v', '^','']
 
-                # Bepaal de ruimte binnen de cel voor de waarden
-                value_width = CELL_SIZE - 50
-                value_height = CELL_SIZE - 50
+                # Tekenen van de waarde op de juiste positie in de cel
+                action_value = grid[row][column]
+                text = font.render(str(round(action_value,2)), True, (0, 0, 0))
+                text_rect = text.get_rect(center=(x + CELL_SIZE / 2, y + CELL_SIZE / 2))
+                screen.blit(text, text_rect)
 
-                # Bepaal de breedte en hoogte van een individuele waarde binnen de cel
-                value_cell_width = value_width / 2
-                value_cell_height = value_height / 2
 
-                # Loop door de actiewaarden en de richtingen
-                for i, action_value in enumerate(grid[row][column]):
-                    # Bereken de positie van de tekst op basis van de richting
-                    dx, dy = directions[i]
-                    text_x = x + CELL_SIZE / 2 + dx * (value_cell_width)
-                    text_y = y + CELL_SIZE / 2 + dy * (value_cell_height)
-
-                    # Tekenen van de waarde op de juiste positie in de cel
-                    text = font.render(str(round(action_value,2)), True, (0, 0, 0))
-                    text_rect = text.get_rect(center=(text_x, text_y))
-                    screen.blit(text, text_rect)
 
                 # draw the action in tuples in the cell
                 # first draw small font size
                 small_font = pygame.font.Font(None, 40)
                 text = small_font.render(str(direction_labels[directions.index(policy_space[row][column])]), True, (0, 0, 0))
-                text_rect = text.get_rect(center=(x + CELL_SIZE / 2, y + CELL_SIZE / 2))
+                text_rect = text.get_rect(center=(x + CELL_SIZE / 1.5, y + CELL_SIZE / 1.5))
                 screen.blit(text, text_rect)
 
         pygame.draw.rect(screen, button_color, button_rect)
@@ -195,6 +183,6 @@ if __name__ == "__main__":
     a1.set_current_state(starting_position)
 
     policy = a1.get_policy()
-    run(a1,m1, step_time = 0.3, discount_factor=1,learning_rate=0.2,epsilon=0.2,n_episodes=1000)
+    visualize_maze(a1,m1, step_time = 0.3, discount_factor=1,learning_rate=0.2,epsilon=0.2,n_episodes=1000)
     #visualize_maze(a1,m1,step_time = 0.3,discount_factor=1,learning_rate=0.2,epsilon=0.2, n_episodes=100)
-    print(f'\n\n new qvalue matrix: {p1.qvalue_matrix}')
+    print(f'\n\n new qvalue matrix: {p1.utility_matrix}')

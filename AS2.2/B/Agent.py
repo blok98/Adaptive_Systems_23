@@ -10,7 +10,7 @@ class Policy():
         self.policy_space = [[(0, 0)] * 4 for i in range(4)]
         self.action_space = [(1,0),(-1,0),(0,1),(0,-1)]
         self.utility_matrix = [[]]
-        self.set_initial_qvalues()
+        self.set_initial_utilities()
     
     def set_size(self,size: tuple) -> None:
         """set size to prevent going out of bounds
@@ -36,18 +36,15 @@ class Policy():
         self.policy_space[position[0]][position[1]]=chosen_action
         # print(f"new_policyspace: {self.policy_space}")
 
-    def update_qvalue(self, qvalue: float, position: tuple, action: tuple) -> None:
+    def update_utility(self, utility: float, position: tuple) -> None:
         """Updates new calculated q value by replacing the corresponding value in the qvalue matrix
 
         Args:
-            qvalue (float): new calculated q value current state to next state: Q(s,a)
+            utility (float): new calculated utility: V(s)
             position (tuple): current state: s
-            action (tuple): action to next state: a
         """
-        #first we define actionindex of best action so we can place new qvalue on right position
-        action_index = self.action_space.index(action)
-        # print(f"update qvalue {qvalue}. qvalue {self.qvalue_matrix[position[0]][position[1]][action_index]} is replaced with {qvalue}.")
-        self.qvalue_matrix[position[0]][position[1]][action_index] = qvalue
+        i,j = position
+        self.utility_matrix[i][j] = utility
 
     def get_policyspace(self) -> list:
         """returns 2D list of all actions chosen by the policy
@@ -57,11 +54,23 @@ class Policy():
         """
         return self.policy_space
     
-    def get_qvalues(self) -> list:
-        return self.qvalue_matrix
+    def get_utilities(self) -> list:
+        return self.utility_matrix
     
-    def SARSA_value_function(self, current_utility: float, reward_sprime: float, utility_sprime: float, discount_factor: float, learning_rate: float) -> float:
-        """calculates new qvalue based on the SARSA-formula
+    def get_utility(self,position: tuple) -> float:
+        """Returns a utility on a given position, is used to determine v(s') given new position
+
+        Args:
+            position (tuple): position of next state
+
+        Returns:
+            float: utility of next state
+        """
+        i,j = position
+        return self.utility_matrix[i][j]
+    
+    def TD_value_function(self, current_utility: float, reward_sprime: float, utility_sprime: float, discount_factor: float, learning_rate: float) -> float:
+        """calculates new qvalue based on the TD-formula
 
         Args:
             current_utility (float): qvalue from current position to next position: Q(s,a)
@@ -75,7 +84,7 @@ class Policy():
         """
         return current_utility + learning_rate*(reward_sprime + discount_factor*utility_sprime-current_utility)
     
-    def SARSA_choose_action(self,current_position: tuple, epsilon:float) -> tuple:
+    def TD_choose_action(self,current_position: tuple, epsilon:float) -> tuple:
         """chooses action and qvalue randomly or according to ARGMAX depending on epsilon.
         This function is called twice for the first step (Q(s,a)) and the second step (Q(s',a'))
         Second step has no exploration so at the second step epsilon is set to 0
@@ -85,19 +94,12 @@ class Policy():
             epsilon (float): chance to explore instead of exploit: e
 
         Returns:
-            tuple: chosen action and corresponding qvalue
+            tuple: chosen action 
         """
         i,j = current_position
-        if random.random()<epsilon:
-            #print("random action chosen")
-            action = random.choice(self.action_space)
-            max_qvalue = self.qvalue_matrix[i][j][self.action_space.index(action)]
-        else:
-            #print("--max action chosen--")
-            max_qvalue = max((self.qvalue_matrix[i][j]))
-            action = self.action_space[self.qvalue_matrix[i][j].index(max_qvalue)]
-        #print(f"utility {max_qvalue} out of all utilities: {self.qvalue_matrix[i][j]} has been chosen")
-        return action, max_qvalue
+        #TD-learning is evaluation on policy, so we determine action based on policy
+        action = self.policy_space[i][j]
+        return action
 
 class Agent():
     def __init__(self, grid: Maze, policy: Policy) -> None:
@@ -148,18 +150,18 @@ class Agent():
         """
         return self.policy.get_policyspace()
 
-    def perceive(self,qvalue_matrix: list, current_position: tuple, action: tuple) -> tuple:
+    def perceive(self,utility_matrix: list, current_position: tuple, action: tuple) -> tuple:
         """Perceive function of agent that calls the Maze.step function and observes reward and new position
 
         Args:
             qvalue_matrix (list): all qvalues known to the agent, located in Policy
             current_position (tuple): current position of the agent: s
-            action (tuple): action chosen by SARSA_choose_action(): a
+            action (tuple): action chosen by TD_choose_action(): a
 
         Returns:
             tuple: reward of next state, State object of next state
         """
-        rs_prime,nextstate = self.maze.step(qvalue_matrix, current_position, action)
+        rs_prime,nextstate = self.maze.step(utility_matrix, current_position, action)
         return rs_prime,nextstate
 
     def act(self, discount_factor: float, learning_rate: float, epsilon: float) -> tuple:
@@ -175,26 +177,27 @@ class Agent():
         """
         position_current_state = self.current_state.get_position()  #(0,0)
         
-        action, utility = self.policy.SARSA_choose_action(position_current_state, epsilon)
+        action = self.policy.TD_choose_action(position_current_state, epsilon)
 
         #perceive values of situation Agent is in (remember TD means agent only knows about current state & rewards and values of current state and next state)
-        nextstate_reward, nextstate = self.perceive(self.policy.get_qvalues(),position_current_state,action) #5, [4,5,2,2], 7
-
+        nextstate_reward, nextstate = self.perceive(self.policy.get_utilities(),position_current_state,action) #5, [4,5,2,2], 7
+        print(position_current_state,nextstate.get_position())
         #update new state. This makes the agent know its new position
         self.current_state=nextstate
 
-        #we re-use policy choose action function with the same epsilon, cause SARSA uses exploration for both first as next step
-        _, nextstate_utility = self.policy.SARSA_choose_action(nextstate.get_position(),epsilon)
+        #ask for utility at current state and next state from policy (V(s) & V(s'))
+        utility = self.policy.get_utility(position_current_state)
+        nextstate_utility = self.policy.get_utility(nextstate.get_position())
 
-        #calculate new utility...
-        new_utility = self.policy.SARSA_value_function(utility,nextstate_reward,nextstate_utility,discount_factor,learning_rate)
+        #calculate new utility (V(s))...
+        new_utility = self.policy.TD_value_function(utility,nextstate_reward,nextstate_utility,discount_factor,learning_rate)
 
         #if final state is reached, also put utility on 0. We look at old position, not the updated one cause we want to determine place of current state.
         if position_current_state in self.maze.get_terminal_states():
             new_utility=0
         
         #update utility matrix based on the calculated value of the old state (so update state 0 with utility of the best next state)
-        self.policy.update_qvalue(new_utility, position_current_state, action)
+        self.policy.update_utility(new_utility, position_current_state)
 
         #now add new visited state to the agents sample
         self.sample.append(self.current_state)
