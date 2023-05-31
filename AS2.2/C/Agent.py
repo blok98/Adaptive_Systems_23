@@ -53,65 +53,21 @@ class Policy():
     def get_qvalues(self):
         return self.qvalue_matrix
     
-    def TD_value_function(self, current_utility, reward_sprime, utility_sprime, discount_factor, learning_rate):
+    def Qlearning_value_function(self, current_utility, reward_sprime, utility_sprime, discount_factor, learning_rate):
         return current_utility + learning_rate*(reward_sprime + discount_factor*utility_sprime-current_utility)
     
     def Qlearning_choose_action(self,current_position,epsilon):
         i,j = current_position
         if random.random()>epsilon:
-            print("random action chosen")
+            #print("random action chosen")
             action = random.choice(self.action_space)
             max_qvalue = self.qvalue_matrix[i][j][self.action_space.index(action)]
         else:
-            print("--max action chosen--")
+            #print("--max action chosen--")
             max_qvalue = max((self.qvalue_matrix[i][j]))
             action = self.action_space[self.qvalue_matrix[i][j].index(max_qvalue)]
-        print(f"utility {max_qvalue} out of all utilities: {self.qvalue_matrix[i][j]} has been chosen")
+        #print(f"utility {max_qvalue} out of all utilities: {self.qvalue_matrix[i][j]} has been chosen")
         return action, max_qvalue
-
-    def select_action(self,action_space: list, current_state: State, state_env: list, value_matrix: list, value_function) -> tuple:
-        """determine best utility and best action by applying bellman expectation equation
-
-        Args:
-            action_space (list): list of all possible actions, limited by position
-            current_state (State): current state of the Agent
-            state_env (list): 2D list of all states in the environment
-            value_matrix (list): 2D list of all utilities
-            value_function (_type_): Bellman expectation equation defined in Agent
-
-        Returns:
-            tuple: tuple of the best action and the maximum achievable utility and the old utlity
-        """
-        #for now chose a random action
-        #but make sure to not go out of bounds
-        #its defined as (n_column,n_row). so (2,3) is 3 right and 4 under
-        # print(f"   policy function select_action started..")
-        current_position = current_state.get_position()
-        #we define the initial max_value as low as possible 
-        max_value = -9999
-        best_action = (0,0)
-        #first we define old utility, to track delta and determine convergion
-        i,j = current_position
-        old_value = value_matrix[i][j]
-        for action in action_space:
-            #calculate position of possible next state by adding the action (0,1) to the current state (2,3)
-            #note that current_position is (y,x) so nextstate = (y+action_y,x+action_x)
-            nextstate_position = (current_position[0]+action[0],current_position[1]+action[1])
-            #define indexes as i,j for shorter code
-            i,j = nextstate_position
-            # first we retrieve the reward of the next state ( r(s') )
-            nextstate_reward = state_env[i][j].get_reward()
-            # then we retrieve the value of the next state ( v(s') )
-            nextstate_value = value_matrix[i][j]
-            print(f"   check action {action}.. nexstatereward = {nextstate_reward}, nextstatevalue = {nextstate_value}, both on position {i,j}.")
-            # at last we update current state value with the bellman expectation equation
-            currentstate_value = value_function(nextstate_reward, nextstate_value, 1)
-            if currentstate_value>=max_value: 
-                max_value=currentstate_value
-                best_action=action
-        # print(f"   best action of policy is {best_action} with value {max_value}")
-
-        return best_action, max_value, old_value
 
 class Agent():
     def __init__(self, grid: Maze, policy: Policy) -> None:
@@ -195,12 +151,9 @@ class Agent():
         _, nextstate_utility = self.policy.Qlearning_choose_action(nextstate.get_position(),epsilon=0)
 
         #calculate new utility...
-        new_utility = self.policy.TD_value_function(utility,nextstate_reward,nextstate_utility,discount_factor,learning_rate)
+        new_utility = self.policy.Qlearning_value_function(utility,nextstate_reward,nextstate_utility,discount_factor,learning_rate)
 
-        #before we update value_matrix we update utility to 0 when calculating utility for terminal state
-        if self.current_state.get_position() in self.maze.get_terminal_states():
-            new_utility=0
-        #if final state is reached, also put utility on 0.
+        #if final state is reached, also put utility on 0. We look at old position, not the updated one cause we want to determine place of current state.
         if position_current_state in self.maze.get_terminal_states():
             new_utility=0
         
@@ -212,6 +165,6 @@ class Agent():
 
         #lastly update policy space with chosen action on old position
         self.policy.update_policyspace(action, position_current_state)
-        print(f"utility: {utility}, first_action: {action}, next reward: {nextstate_reward}, next utility: {nextstate_utility}, updated_utility: {new_utility}, next_position: {nextstate.get_position()}")
+        #print(f"utility: {utility}, first_action: {action}, next reward: {nextstate_reward}, next utility: {nextstate_utility}, updated_utility: {new_utility}, next_position: {nextstate.get_position()}")
 
         return utility, new_utility

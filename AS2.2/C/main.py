@@ -141,12 +141,12 @@ def visualize_maze(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learnin
                 # draw the cell in the window with corresponding cell, and color info
                 pygame.draw.rect(screen, color, [x, y, CELL_SIZE, CELL_SIZE])
 
-                font = pygame.font.Font(None, 14)
+                font = pygame.font.Font(None, 20)
                 # draw the utility value in the cell
                 offset = 15
                 # Definieer een lijst met relatieve posities voor elke richting (boven, onder, links, rechts)
                 directions = [(0, 1), (0, -1), (1, 0), (-1, 0),(0,0)]  # [rechts, links, omlaag, omhoog]
-                direction_labels = ['>', '<', 'v', '^','stay']
+                direction_labels = ['>', '<', 'v', '^','']
 
                 # Bepaal de ruimte binnen de cel voor de waarden
                 value_width = CELL_SIZE - 50
@@ -164,14 +164,14 @@ def visualize_maze(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learnin
                     text_y = y + CELL_SIZE / 2 + dy * (value_cell_height)
 
                     # Tekenen van de waarde op de juiste positie in de cel
-                    text = font.render(str(action_value), True, (0, 0, 0))
+                    text = font.render(str(round(action_value,2)), True, (0, 0, 0))
                     text_rect = text.get_rect(center=(text_x, text_y))
                     screen.blit(text, text_rect)
 
 
                 # draw the action in tuples in the cell
                 # first draw small font size
-                small_font = pygame.font.Font(None, 20)
+                small_font = pygame.font.Font(None, 40)
                 text = small_font.render(str(direction_labels[directions.index(policy_space[row][column])]), True, (0, 0, 0))
                 text_rect = text.get_rect(center=(x + CELL_SIZE / 2, y + CELL_SIZE / 2))
                 screen.blit(text, text_rect)
@@ -242,5 +242,5 @@ if __name__ == "__main__":
 
     policy = a1.get_policy()
     # run(a1,m1, 0.2, discount_factor=1,learning_rate=1,epsilon=0.2,n_episodes=10, endvisualisation_time=50)
-    visualize_maze(a1,m1,step_time = 0.5,discount_factor=1,learning_rate=1,epsilon=0.4, n_episodes=10000)
+    run(a1,m1,step_time = 0.7,discount_factor=1,learning_rate=0.2,epsilon=0.2, n_episodes=1000000)
     print(f'\n\n new qvalue matrix: {p1.qvalue_matrix}')
