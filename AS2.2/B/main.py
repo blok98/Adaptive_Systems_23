@@ -18,7 +18,7 @@ def run(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learning_rate=1,ep
             current_position=a1.get_current_state().get_position()
             if current_position in m1.get_terminal_states():
                 status="Converged"
-                a1.set_current_state((0,0))
+                a1.set_current_state((3,2))
                 episode_num+=1
                 status="Not Converged"
     print(f"episode {episode_num} has converged")
@@ -80,7 +80,7 @@ def visualize_maze(a1: Agent,m1: Maze, step_time: int, discount_factor=1,learnin
             status="Converged"
         
         if status=="Converged":
-            a1.set_current_state((0,0))
+            a1.set_current_state((3,2))
             print(f"episode {episode_num} has converged")
             episode_num+=1
             status="Not Converged"
@@ -174,15 +174,23 @@ if __name__ == "__main__":
                     [-1,-1,-10,-10],
                     [-1,-1,-1,-1],
                     [10,-2,-1,-1]]
+    #we define the policy determined by the earlier assignment "1.2 utility based agent"
+    policyspace = [[(0, 1), (0, 1), (0, 1), (0, -1)], 
+     [(0, 1), (-1, 0), (-1, 0), (-1, 0)], 
+     [(0, 1), (-1, 0), (0, -1), (0, -1)], 
+     [(-1, 0), (-1, 0), (-1, 0), (0, -1)]]
+    
     # final states (finish) are located in the upper right and lower left corners
     final_states = [(3,0),(0,3)]
-    starting_position = (0,0)
+    #we now define start position on the official start position (3,4)
+    starting_position = (3,2)
     m1 = Maze(reward_matrix, final_states)
     p1 = Policy()
+    p1.set_policyspace(policyspace)
     a1 = Agent(m1,p1)
     a1.set_current_state(starting_position)
 
     policy = a1.get_policy()
-    visualize_maze(a1,m1, step_time = 0.3, discount_factor=1,learning_rate=0.2,epsilon=0.2,n_episodes=1000)
+    run(a1,m1, step_time = 0.3, discount_factor=1,learning_rate=0.2,epsilon=0.2,n_episodes=10000)
     #visualize_maze(a1,m1,step_time = 0.3,discount_factor=1,learning_rate=0.2,epsilon=0.2, n_episodes=100)
     print(f'\n\n new qvalue matrix: {p1.utility_matrix}')

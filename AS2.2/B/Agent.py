@@ -12,6 +12,15 @@ class Policy():
         self.utility_matrix = [[]]
         self.set_initial_utilities()
     
+    def set_policyspace(self, policy_space: list) -> None:
+        """Used to set up policy determined by previeous assignm.
+        This policy will be used to evaluate the policy.
+
+        Args:
+            policy_space (list): list of all actions taken in every position of the maze according to policy
+        """
+        self.policy_space = policy_space
+    
     def set_size(self,size: tuple) -> None:
         """set size to prevent going out of bounds
 
@@ -181,7 +190,6 @@ class Agent():
 
         #perceive values of situation Agent is in (remember TD means agent only knows about current state & rewards and values of current state and next state)
         nextstate_reward, nextstate = self.perceive(self.policy.get_utilities(),position_current_state,action) #5, [4,5,2,2], 7
-        print(position_current_state,nextstate.get_position())
         #update new state. This makes the agent know its new position
         self.current_state=nextstate
 
