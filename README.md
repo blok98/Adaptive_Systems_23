@@ -8,6 +8,8 @@ Branch:
 - <b>Stochasticische-omgeving:</b> 1.2 extra
 - <b>Perceptual-Control-Theory:</b> 1.2 reconstructie code op basis van PCT structuur
 - <b>Q-learning: </b> 2.2 section C
+- <b>SARSA: </b> 2.2 section B
+- <b>Temporal-difference-learning: </b> 2.2 section A
 
 Elke functie is voorzien van docstrings waarin wordt beschreven wat de functies en argumenten doen.
 
