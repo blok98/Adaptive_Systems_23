@@ -7,7 +7,7 @@ Branch:
 - <b>Utility-based-agent:</b> 1.2 section C
 - <b>Stochasticische-omgeving:</b> 1.2 extra
 - <b>Perceptual-Control-Theory:</b> 1.2 reconstructie code op basis van PCT structuur
-- <b>Model-free-prediction-&-control: </b> 2.2 section C
+- <b>Q-learning: </b> 2.2 section C
 
 Elke functie is voorzien van docstrings waarin wordt beschreven wat de functies en argumenten doen.
 
